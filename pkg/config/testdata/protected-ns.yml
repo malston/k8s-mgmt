@@ -1,0 +1,8 @@
+---
+protected_ns:
+  - default
+  - istio-gateway
+  - istio-system
+  - kube-public
+  - kube-system
+  - pks-system

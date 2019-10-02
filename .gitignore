@@ -10,3 +10,20 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# built artifacts
+/kmgmt
+/kmgmt.zip
+/kmgmt-*.tgz
+/kmgmt-*.zip
+
+# coverage artifacts
+/coverage.txt
+
+# Visual Studio Code artifacts
+.vscode
+
+# OS turds
+.DS_Store
+
+/vendor
