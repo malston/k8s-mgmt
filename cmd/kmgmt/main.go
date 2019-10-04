@@ -32,8 +32,6 @@ import (
 )
 
 func main() {
-	kubeConfigFile := "."
-	k := k8s.NewClient(kubeConfigFile)
 
 	home, err := homedir.Dir()
 	if err != nil {
@@ -46,7 +44,10 @@ func main() {
 		configDir = mgmtEnvConf
 	}
 
-	root := kmgmt.CreateRootCommand(k, configDir)
+	kubeConfigFile := filepath.Join(home, ".kube", "config")
+	c := k8s.NewClient(kubeConfigFile)
+
+	root := kmgmt.CreateRootCommand(c, configDir)
 	fmt.Println() // Print a blank line before output for readability
 
 	if err := root.Execute(); err != nil {

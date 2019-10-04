@@ -3,6 +3,7 @@ package k8s
 import (
 	"fmt"
 	"io"
+	"os"
 
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -62,6 +63,9 @@ func (c *client) SetContext(context string) error {
 func NewClient(kubeConfigFile string) Client {
 	return &client{
 		kubeConfigFile: kubeConfigFile,
+		Stdin:          os.Stdin,
+		Stdout:         os.Stdout,
+		Stderr:         os.Stderr,
 	}
 }
 
