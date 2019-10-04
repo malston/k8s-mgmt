@@ -4,12 +4,16 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/malston/k8s-mgmt/pkg/kmgmt"
 	"github.com/onsi/gomega/gbytes"
 )
 
 func TestRootCommandWithHelpFlag(t *testing.T) {
-	root := kmgmt.CreateRootCommand()
+	kubeConfigFile := "."
+	k := k8s.NewClient(kubeConfigFile)
+
+	root := kmgmt.CreateRootCommand(k, "../config/testdata")
 
 	buffer := gbytes.NewBuffer()
 	root.SetOutput(buffer)

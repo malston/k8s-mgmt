@@ -24,18 +24,29 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/malston/k8s-mgmt/pkg/kmgmt"
+	"github.com/mitchellh/go-homedir"
 )
 
-// func main() {
-//   kmgmt.Execute()
-// }
 func main() {
 	kubeConfigFile := "."
 	k := k8s.NewClient(kubeConfigFile)
-	root := kmgmt.CreateRootCommand(k)
+
+	home, err := homedir.Dir()
+	if err != nil {
+		fmt.Print(err.Error() + "\n")
+		os.Exit(1)
+	}
+	configDir := filepath.Join(home, ".k8s-mgmt", "config")
+
+	if mgmtEnvConf, ok := os.LookupEnv("K8SMGMT_HOME"); ok {
+		configDir = mgmtEnvConf
+	}
+
+	root := kmgmt.CreateRootCommand(k, configDir)
 	fmt.Println() // Print a blank line before output for readability
 
 	if err := root.Execute(); err != nil {

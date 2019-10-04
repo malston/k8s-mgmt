@@ -16,8 +16,8 @@ func TestCreateNamespacesErrorsWithoutArgs(t *testing.T) {
 	buffer := gbytes.NewBuffer()
 	// k := fakes.NewClient()
 	kubeConfigFile := "../k8s/testdata/.kube/config"
-	k := k8s.NewClient(kubeConfigFile)
-	root := kmgmt.CreateRootCommand(k)
+	c := k8s.NewClient(kubeConfigFile)
+	root := kmgmt.CreateRootCommand(c, "../config/testdata")
 	root.SetOutput(buffer)
 	root.SetArgs([]string{"create-namespaces"})
 
@@ -36,8 +36,8 @@ func TestCreateNamespacesInvalidCluster(t *testing.T) {
 	buffer := gbytes.NewBuffer()
 	// k := fakes.NewClient()
 	kubeConfigFile := "../k8s/testdata/.kube/config"
-	k := k8s.NewClient(kubeConfigFile)
-	root := kmgmt.CreateRootCommand(k)
+	c := k8s.NewClient(kubeConfigFile)
+	root := kmgmt.CreateRootCommand(c, "../config/testdata")
 	root.SetOutput(buffer)
 	root.SetArgs([]string{"create-namespaces", "cluster-noexiste"})
 
@@ -45,7 +45,6 @@ func TestCreateNamespacesInvalidCluster(t *testing.T) {
 	if err == nil {
 		t.Fatalf("execute should error without args")
 	}
-	fmt.Printf("error: %s", err.Error())
 
 	contents := string(buffer.Contents())
 	if !strings.Contains(contents, "context 'cluster-noexiste' not found\n") {
@@ -55,13 +54,13 @@ func TestCreateNamespacesInvalidCluster(t *testing.T) {
 
 func TestCreateNamespacesValidCluster(t *testing.T) {
 	c := fakes.NewClient()
-	root := kmgmt.CreateRootCommand(c)
+	root := kmgmt.CreateRootCommand(c, "../config/testdata")
 
 	output := &bytes.Buffer{}
 	root.SetOutput(output)
 	c.Stdout = output
 	c.Stderr = output
-	root.SetArgs([]string{"create-namespaces", "cluster01"})
+	root.SetArgs([]string{"create-namespaces", "cluster-1"})
 
 	err := root.Execute()
 	if err != nil {

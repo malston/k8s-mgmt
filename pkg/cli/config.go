@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -14,10 +15,13 @@ type Config struct {
 	KubeConfigFile string
 	k8s.Client
 	config.Manager
+	configDir string
 }
 
-func NewConfig() *Config {
-	c := &Config{}
+func NewConfig(configDir string) *Config {
+	c := &Config{
+		configDir: configDir,
+	}
 
 	// cobra.OnInitialize(c.initViperConfig)
 	cobra.OnInitialize(c.initKubeConfig)
@@ -47,6 +51,11 @@ func (c *Config) init() {
 		c.Client = k8s.NewClient(c.KubeConfigFile)
 	}
 	if c.Manager == nil {
-		c.Manager, _ = config.NewManager("/Users/malston/workspace/k8s-mgmt/testdata")
+		var err error
+		c.Manager, err = config.NewManager(c.configDir)
+		if err != nil {
+			fmt.Print(err.Error() + "\n")
+			os.Exit(1)
+		}
 	}
 }
