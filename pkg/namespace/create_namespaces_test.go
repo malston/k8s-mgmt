@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/malston/k8s-mgmt/pkg/cli"
 	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/malston/k8s-mgmt/pkg/kmgmt"
 	fakes "github.com/malston/k8s-mgmt/pkg/testing"
@@ -17,7 +18,8 @@ func TestCreateNamespacesErrorsWithoutArgs(t *testing.T) {
 	// k := fakes.NewClient()
 	kubeConfigFile := "../k8s/testdata/.kube/config"
 	c := k8s.NewClient(kubeConfigFile)
-	root := kmgmt.CreateRootCommand(c, "../config/testdata")
+	conf := cli.NewConfig("../config/testdata")
+	root := kmgmt.CreateRootCommand(c, conf)
 	root.SetOutput(buffer)
 	root.SetArgs([]string{"create-namespaces"})
 
@@ -37,7 +39,8 @@ func TestCreateNamespacesInvalidCluster(t *testing.T) {
 	// k := fakes.NewClient()
 	kubeConfigFile := "../k8s/testdata/.kube/config"
 	c := k8s.NewClient(kubeConfigFile)
-	root := kmgmt.CreateRootCommand(c, "../config/testdata")
+	conf := cli.NewConfig("../config/testdata")
+	root := kmgmt.CreateRootCommand(c, conf)
 	root.SetOutput(buffer)
 	root.SetArgs([]string{"create-namespaces", "cluster-noexiste"})
 
@@ -54,12 +57,13 @@ func TestCreateNamespacesInvalidCluster(t *testing.T) {
 
 func TestCreateNamespacesValidCluster(t *testing.T) {
 	c := fakes.NewClient()
-	root := kmgmt.CreateRootCommand(c, "../config/testdata")
+	conf := cli.NewConfig("../config/testdata")
+	root := kmgmt.CreateRootCommand(c, conf)
 
 	output := &bytes.Buffer{}
 	root.SetOutput(output)
-	c.Stdout = output
-	c.Stderr = output
+	conf.Stdout = output
+	conf.Stderr = output
 	root.SetArgs([]string{"create-namespaces", "cluster-1"})
 
 	err := root.Execute()

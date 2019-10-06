@@ -31,7 +31,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func CreateRootCommand(k k8s.Client, configDir string) *cobra.Command {
+func CreateRootCommand(k k8s.Client, config *cli.Config) *cobra.Command {
 
 	rootCmd := &cobra.Command{
 		Use:   "kmgmt",
@@ -47,8 +47,7 @@ to quickly create a Cobra application.`,
 		//	Run: func(cmd *cobra.Command, args []string) { },
 	}
 
-	c := cli.NewConfig(configDir)
-	namespaceCmd := namespace.NewCommand(c, k)
+	namespaceCmd := namespace.NewCommand(config, k)
 	rootCmd.AddCommand(namespaceCmd)
 	// rootCmd.AddCommand(cluster.NewCommand())
 

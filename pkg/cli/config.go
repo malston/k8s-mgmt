@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -16,11 +17,25 @@ type Config struct {
 	k8s.Client
 	config.Manager
 	configDir string
+	Stdin     io.Reader
+	Stdout    io.Writer
+	Stderr    io.Writer
+}
+
+func (c *Config) Printf(format string, a ...interface{}) (n int, err error) {
+	return fmt.Fprintf(c.Stdout, format, a...)
+}
+
+func (c *Config) Eprintf(format string, a ...interface{}) (n int, err error) {
+	return fmt.Fprintf(c.Stderr, format, a...)
 }
 
 func NewConfig(configDir string) *Config {
 	c := &Config{
 		configDir: configDir,
+		Stdin:     os.Stdin,
+		Stdout:    os.Stdout,
+		Stderr:    os.Stderr,
 	}
 
 	// cobra.OnInitialize(c.initViperConfig)

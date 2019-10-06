@@ -26,6 +26,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/malston/k8s-mgmt/pkg/cli"
 	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/malston/k8s-mgmt/pkg/kmgmt"
 	"github.com/mitchellh/go-homedir"
@@ -33,6 +34,29 @@ import (
 
 func main() {
 
+	conf := newConfigClient()
+	c := newK8sClient()
+	root := kmgmt.CreateRootCommand(c, conf)
+	fmt.Println() // Print a blank line before output for readability
+
+	if err := root.Execute(); err != nil {
+		os.Exit(1)
+	}
+	fmt.Println() // Print a blank line after output for readability
+}
+
+func newK8sClient() k8s.Client {
+	home, err := homedir.Dir()
+	if err != nil {
+		fmt.Print(err.Error() + "\n")
+		os.Exit(1)
+	}
+	kubeConfigFile := filepath.Join(home, ".kube", "config")
+	c := k8s.NewClient(kubeConfigFile)
+	return c
+}
+
+func newConfigClient() *cli.Config {
 	home, err := homedir.Dir()
 	if err != nil {
 		fmt.Print(err.Error() + "\n")
@@ -44,14 +68,5 @@ func main() {
 		configDir = mgmtEnvConf
 	}
 
-	kubeConfigFile := filepath.Join(home, ".kube", "config")
-	c := k8s.NewClient(kubeConfigFile)
-
-	root := kmgmt.CreateRootCommand(c, configDir)
-	fmt.Println() // Print a blank line before output for readability
-
-	if err := root.Execute(); err != nil {
-		os.Exit(1)
-	}
-	fmt.Println() // Print a blank line after output for readability
+	return cli.NewConfig(configDir)
 }

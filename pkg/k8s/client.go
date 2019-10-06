@@ -2,8 +2,6 @@ package k8s
 
 import (
 	"fmt"
-	"io"
-	"os"
 
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -16,8 +14,6 @@ type Client interface {
 	Core() corev1.CoreV1Interface
 	CurrentContext() string
 	SetContext(context string) error
-	Printf(format string, a ...interface{}) (n int, err error)
-	Eprintf(format string, a ...interface{}) (n int, err error)
 }
 
 func (c *client) Core() corev1.CoreV1Interface {
@@ -63,18 +59,7 @@ func (c *client) SetContext(context string) error {
 func NewClient(kubeConfigFile string) Client {
 	return &client{
 		kubeConfigFile: kubeConfigFile,
-		Stdin:          os.Stdin,
-		Stdout:         os.Stdout,
-		Stderr:         os.Stderr,
 	}
-}
-
-func (c *client) Printf(format string, a ...interface{}) (n int, err error) {
-	return fmt.Fprintf(c.Stdout, format, a...)
-}
-
-func (c *client) Eprintf(format string, a ...interface{}) (n int, err error) {
-	return fmt.Fprintf(c.Stderr, format, a...)
 }
 
 type client struct {
@@ -82,9 +67,6 @@ type client struct {
 	kubeConfigFile string
 	kubeConfig     clientcmd.ClientConfig
 	restConfig     *rest.Config
-	Stdin          io.Reader
-	Stdout         io.Writer
-	Stderr         io.Writer
 }
 
 func (c *client) lazyLoadKubeConfig() clientcmd.ClientConfig {

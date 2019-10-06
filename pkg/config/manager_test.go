@@ -70,7 +70,7 @@ func TestNamespaceIsOverriddenInYaml(t *testing.T) {
 	}
 }
 
-func TestClusterDoesNotExisat(t *testing.T) {
+func TestClusterDoesNotExist(t *testing.T) {
 	m, _ := config.NewManager("./testdata")
 	name := "cluster-noexiste"
 	_, err := m.GetNamespaces(name)

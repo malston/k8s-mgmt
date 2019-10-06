@@ -22,9 +22,6 @@ THE SOFTWARE.
 package testing
 
 import (
-	"fmt"
-	"io"
-
 	kubernetes "k8s.io/client-go/kubernetes/fake"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
@@ -32,9 +29,6 @@ import (
 type FakeClient struct {
 	FakeKubeClientset *kubernetes.Clientset
 	Context           string
-	Stdin             io.Reader
-	Stdout            io.Writer
-	Stderr            io.Writer
 }
 
 func (c *FakeClient) Core() corev1.CoreV1Interface {
@@ -56,12 +50,4 @@ func NewClient() *FakeClient {
 	return &FakeClient{
 		FakeKubeClientset: kubeClientset,
 	}
-}
-
-func (c *FakeClient) Printf(format string, a ...interface{}) (n int, err error) {
-	return fmt.Fprintf(c.Stdout, format, a...)
-}
-
-func (c *FakeClient) Eprintf(format string, a ...interface{}) (n int, err error) {
-	return fmt.Fprintf(c.Stderr, format, a...)
 }

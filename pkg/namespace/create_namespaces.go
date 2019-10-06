@@ -86,7 +86,7 @@ func (c *create) runE(cmd *cobra.Command, args []string) error {
 			return e
 		}
 
-		client.Printf("Namespace %s created\n", n.GetName())
+		c.c.Printf("Namespace %s created\n", n.GetName())
 	}
 
 	return err
