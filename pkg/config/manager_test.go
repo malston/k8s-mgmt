@@ -86,9 +86,7 @@ func TestClusterDoesNotExist(t *testing.T) {
 	if err == nil {
 		t.Fatal("should return error when given a cluster name that doesn't exist")
 	}
-	errM := err.Error()
-	println(errM)
-	if errM != fmt.Sprintf("cluster %s does not exist in config folder", name) {
+	if err.Error() != fmt.Sprintf("cluster %s does not exist in config folder", name) {
 		t.Fatal("should return correct error message")
 	}
 }
