@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/gogo/protobuf v1.3.0 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
-	github.com/google/go-cmp v0.3.1 // indirect
+	github.com/google/go-cmp v0.3.1
 	github.com/googleapis/gnostic v0.2.2 // indirect
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
