@@ -5,18 +5,22 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/malston/k8s-mgmt/pkg/config"
 	"github.com/malston/k8s-mgmt/pkg/k8s"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	KubeConfigFile string
+	KubeConfigFile  string
+	ViperConfigFile string
 	k8s.Client
 	config.Manager
 	ConfigDir string
+	Name      string
 	Stdin     io.Reader
 	Stdout    io.Writer
 	Stderr    io.Writer
@@ -33,6 +37,7 @@ func (c *Config) Eprintf(format string, a ...interface{}) (n int, err error) {
 func NewConfig(configDir string) *Config {
 	c := &Config{
 		ConfigDir: configDir,
+		Name:      "k8s-mgmt",
 		Stdin:     os.Stdin,
 		Stdout:    os.Stdout,
 		Stderr:    os.Stderr,
@@ -62,6 +67,7 @@ func (c *Config) initKubeConfig() {
 }
 
 func (c *Config) init() {
+	cobra.OnInitialize(c.initViperConfig)
 	if c.Client == nil {
 		c.Client = k8s.NewClient(c.KubeConfigFile)
 	}
@@ -69,8 +75,37 @@ func (c *Config) init() {
 		var err error
 		c.Manager, err = config.NewManager(c.ConfigDir)
 		if err != nil {
-			fmt.Print(err.Error() + "\n")
+			c.Eprintf("%s\n", err)
 			os.Exit(1)
 		}
+	}
+}
+
+// initViperConfig reads in config file and ENV variables if set.
+func (c *Config) initViperConfig() {
+	if c.ViperConfigFile != "" {
+		// Use config file from the flag.
+		viper.SetConfigFile(c.ViperConfigFile)
+	} else {
+		// Find home directory.
+		home, err := homedir.Dir()
+		if err != nil {
+			// avoid color since we don't know if it should be enabled yet
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+
+		// Search config in home directory with name ".k8s-mgmt" (without extension).
+		viper.AddConfigPath(home)
+		viper.SetConfigName("." + c.Name)
+	}
+	viper.SetEnvPrefix(c.Name)
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.AutomaticEnv() // read in environment variables that match
+
+	// If a config file is found, read it in.
+	err := viper.ReadInConfig()
+	if err == nil {
+		c.Eprintf("Using config file: %s\n", viper.ConfigFileUsed())
 	}
 }

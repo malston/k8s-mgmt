@@ -27,8 +27,6 @@ import (
 	"github.com/malston/k8s-mgmt/pkg/namespace"
 
 	"github.com/spf13/cobra"
-
-	"github.com/spf13/viper"
 )
 
 func CreateRootCommand(k k8s.Client, config *cli.Config) *cobra.Command {
@@ -54,13 +52,4 @@ to quickly create a Cobra application.`,
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	return rootCmd
-}
-
-func init() {
-	cobra.OnInitialize(initConfig)
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
-	viper.AutomaticEnv() // read in environment variables that match
 }
