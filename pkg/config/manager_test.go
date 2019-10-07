@@ -70,14 +70,25 @@ func TestNamespaceIsOverriddenInYaml(t *testing.T) {
 	}
 }
 
-func TestClusterDoesNotExist(t *testing.T) {
+func TestNamespacesAreEmpty(t *testing.T) {
 	m, _ := config.NewManager("./testdata")
+	name := "cluster-noexiste"
+	ns, _ := m.GetNamespaces(name)
+	if len(ns) != 0 {
+		t.Fatal("should return empty set of namespaces")
+	}
+}
+
+func TestClusterDoesNotExist(t *testing.T) {
+	m, _ := config.NewManager("./testdata/noclusters")
 	name := "cluster-noexiste"
 	_, err := m.GetNamespaces(name)
 	if err == nil {
 		t.Fatal("should return error when given a cluster name that doesn't exist")
 	}
-	if err.Error() != fmt.Sprintf("cluster %s does not exist in config folder", name) {
+	errM := err.Error()
+	println(errM)
+	if errM != fmt.Sprintf("cluster %s does not exist in config folder", name) {
 		t.Fatal("should return correct error message")
 	}
 }

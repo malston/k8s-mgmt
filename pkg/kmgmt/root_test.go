@@ -1,13 +1,13 @@
 package kmgmt_test
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
 	"github.com/malston/k8s-mgmt/pkg/cli"
 	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/malston/k8s-mgmt/pkg/kmgmt"
-	"github.com/onsi/gomega/gbytes"
 )
 
 func TestRootCommandWithHelpFlag(t *testing.T) {
@@ -17,8 +17,8 @@ func TestRootCommandWithHelpFlag(t *testing.T) {
 
 	root := kmgmt.CreateRootCommand(k, c)
 
-	buffer := gbytes.NewBuffer()
-	root.SetOutput(buffer)
+	output := &bytes.Buffer{}
+	root.SetOutput(output)
 	root.SetArgs([]string{"--help"})
 
 	err := root.Execute()
@@ -27,7 +27,7 @@ func TestRootCommandWithHelpFlag(t *testing.T) {
 		t.Fatalf("execute should not error, %s", err.Error())
 	}
 
-	contents := string(buffer.Contents())
+	contents := output.String()
 	if !strings.Contains(contents, "Help message for toggle\n") {
 		t.Fatal("expected help message to be given")
 	}
