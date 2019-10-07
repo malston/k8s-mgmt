@@ -16,7 +16,7 @@ type Config struct {
 	KubeConfigFile string
 	k8s.Client
 	config.Manager
-	configDir string
+	ConfigDir string
 	Stdin     io.Reader
 	Stdout    io.Writer
 	Stderr    io.Writer
@@ -32,7 +32,7 @@ func (c *Config) Eprintf(format string, a ...interface{}) (n int, err error) {
 
 func NewConfig(configDir string) *Config {
 	c := &Config{
-		configDir: configDir,
+		ConfigDir: configDir,
 		Stdin:     os.Stdin,
 		Stdout:    os.Stdout,
 		Stderr:    os.Stderr,
@@ -67,7 +67,7 @@ func (c *Config) init() {
 	}
 	if c.Manager == nil {
 		var err error
-		c.Manager, err = config.NewManager(c.configDir)
+		c.Manager, err = config.NewManager(c.ConfigDir)
 		if err != nil {
 			fmt.Print(err.Error() + "\n")
 			os.Exit(1)

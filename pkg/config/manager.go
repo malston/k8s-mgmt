@@ -48,14 +48,15 @@ func (m *configmanager) GetNamespaces(cluster string) ([]*Namespace, error) {
 		return nil, err
 	}
 
+	if len(m.config.Clusters) == 0 {
+		return nil, fmt.Errorf("cluster %s does not exist in config folder", cluster)
+	}
+
 	var n []*Namespace
 	for _, c := range m.config.Clusters {
 		if c.Name == cluster {
 			return append(n, c.Namespaces...), nil
 		}
-	}
-	if len(n) == 0 {
-		return nil, fmt.Errorf("cluster %s does not exist in config folder", cluster)
 	}
 
 	return n, nil

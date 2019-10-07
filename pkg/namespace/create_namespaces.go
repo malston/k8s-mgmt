@@ -22,6 +22,7 @@ THE SOFTWARE.
 package namespace
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/malston/k8s-mgmt/pkg/cli"
@@ -75,6 +76,9 @@ func (c *create) runE(cmd *cobra.Command, args []string) error {
 	namespaces, err := m.GetNamespaces(clusterName)
 	if err != nil {
 		return err
+	}
+	if len(namespaces) == 0 {
+		return fmt.Errorf("no namespaces found for cluster %s", clusterName)
 	}
 	for _, ns := range namespaces {
 		n, e := client.Core().Namespaces().Create(&v1.Namespace{
