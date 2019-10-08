@@ -145,6 +145,6 @@ func TestInit(t *testing.T) {
 		t.Errorf("Expected c.Client tp be set, actually %v", c.Client)
 	}
 	if c.Manager == nil {
-		t.Errorf("Expected c.Manager tp be set, actually %v", c.Client)
+		t.Errorf("Expected c.Manager tp be set, actually %v", c.Manager)
 	}
 }

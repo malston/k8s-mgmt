@@ -20,10 +20,9 @@ import (
 func TestCreateNamespacesErrorsWithoutArgs(t *testing.T) {
 	output := &bytes.Buffer{}
 	// k := fakes.NewClient()
-	kubeConfigFile := "../k8s/testdata/.kube/config"
-	c := k8s.NewClient(kubeConfigFile)
 	conf := cli.NewConfig("../config/testdata")
-	root := kmgmt.CreateRootCommand(c, conf)
+	conf.Client = k8s.NewClient("../k8s/testdata/.kube/config")
+	root := kmgmt.CreateRootCommand(conf)
 	root.SetOutput(output)
 	root.SetArgs([]string{"create-namespaces"})
 
@@ -41,10 +40,9 @@ func TestCreateNamespacesErrorsWithoutArgs(t *testing.T) {
 func TestCreateNamespacesInvalidCluster(t *testing.T) {
 	output := &bytes.Buffer{}
 	// k := fakes.NewClient()
-	kubeConfigFile := "../k8s/testdata/.kube/config"
-	c := k8s.NewClient(kubeConfigFile)
 	conf := cli.NewConfig("../config/testdata")
-	root := kmgmt.CreateRootCommand(c, conf)
+	conf.Client = k8s.NewClient("../k8s/testdata/.kube/config")
+	root := kmgmt.CreateRootCommand(conf)
 	root.SetOutput(output)
 	root.SetArgs([]string{"create-namespaces", "cluster-noexiste"})
 
@@ -60,9 +58,9 @@ func TestCreateNamespacesInvalidCluster(t *testing.T) {
 }
 
 func TestCreateNamespacesNoNamespaceFound(t *testing.T) {
-	c := fakes.NewClient()
 	conf := cli.NewConfig("../config/testdata")
-	root := kmgmt.CreateRootCommand(c, conf)
+	conf.Client = fakes.NewClient()
+	root := kmgmt.CreateRootCommand(conf)
 
 	output := &bytes.Buffer{}
 	root.SetOutput(output)
@@ -82,9 +80,9 @@ func TestCreateNamespacesNoNamespaceFound(t *testing.T) {
 }
 
 func TestCreateNamespacesValidCluster(t *testing.T) {
-	c := fakes.NewClient()
 	conf := cli.NewConfig("../config/testdata")
-	root := kmgmt.CreateRootCommand(c, conf)
+	conf.Client = fakes.NewClient()
+	root := kmgmt.CreateRootCommand(conf)
 
 	output := &bytes.Buffer{}
 	root.SetOutput(output)
@@ -105,7 +103,6 @@ func TestCreateNamespacesValidCluster(t *testing.T) {
 }
 
 func TestNamespaceDoesNotExist(t *testing.T) {
-	c := fakes.NewClient()
 	conf := &cli.Config{
 		ConfigDir: "../config/testdata",
 		Manager: newManager(
@@ -115,7 +112,8 @@ func TestNamespaceDoesNotExist(t *testing.T) {
 				},
 			}, nil, fmt.Errorf("namespace doesn't exist")),
 	}
-	root := kmgmt.CreateRootCommand(c, conf)
+	conf.Client = fakes.NewClient()
+	root := kmgmt.CreateRootCommand(conf)
 
 	output := &bytes.Buffer{}
 	root.SetOutput(output)
@@ -152,7 +150,8 @@ func TestCreateInvalidNamespace(t *testing.T) {
 			},
 			nil),
 	}
-	root := kmgmt.CreateRootCommand(c, conf)
+	conf.Client = c
+	root := kmgmt.CreateRootCommand(conf)
 
 	output := &bytes.Buffer{}
 	root.SetOutput(output)

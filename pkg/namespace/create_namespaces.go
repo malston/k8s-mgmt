@@ -32,10 +32,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewCommand(conf *cli.Config, k8s k8s.Client) *cobra.Command {
+func NewCommand(conf *cli.Config) *cobra.Command {
 	c := &create{
 		c:   conf,
-		k8s: k8s,
+		k8s: conf.Client,
 	}
 	cmd := c.command()
 

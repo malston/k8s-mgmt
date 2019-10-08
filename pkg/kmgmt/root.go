@@ -23,13 +23,12 @@ package kmgmt
 
 import (
 	"github.com/malston/k8s-mgmt/pkg/cli"
-	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/malston/k8s-mgmt/pkg/namespace"
 
 	"github.com/spf13/cobra"
 )
 
-func CreateRootCommand(k k8s.Client, config *cli.Config) *cobra.Command {
+func CreateRootCommand(config *cli.Config) *cobra.Command {
 
 	rootCmd := &cobra.Command{
 		Use:   "kmgmt",
@@ -45,7 +44,7 @@ to quickly create a Cobra application.`,
 		//	Run: func(cmd *cobra.Command, args []string) { },
 	}
 
-	namespaceCmd := namespace.NewCommand(config, k)
+	namespaceCmd := namespace.NewCommand(config)
 	rootCmd.AddCommand(namespaceCmd)
 	// rootCmd.AddCommand(cluster.NewCommand())
 

@@ -11,11 +11,10 @@ import (
 )
 
 func TestRootCommandWithHelpFlag(t *testing.T) {
-	kubeConfigFile := "."
-	k := k8s.NewClient(kubeConfigFile)
 	c := cli.NewConfig("../config/testdata")
+	c.Client = k8s.NewClient(".")
 
-	root := kmgmt.CreateRootCommand(k, c)
+	root := kmgmt.CreateRootCommand(c)
 
 	output := &bytes.Buffer{}
 	root.SetOutput(output)
