@@ -142,9 +142,9 @@ func TestInit(t *testing.T) {
 		t.Errorf("Unexpected output (-expected, +actual): %s", diff)
 	}
 	if c.Client == nil {
-		t.Errorf("Expected c.Client tp be set, actually %v", c.Client)
+		t.Errorf("Expected c.Client to be set, actually %v", c.Client)
 	}
 	if c.Manager == nil {
-		t.Errorf("Expected c.Manager tp be set, actually %v", c.Manager)
+		t.Errorf("Expected c.Manager to be set, actually %v", c.Manager)
 	}
 }
