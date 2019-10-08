@@ -17,7 +17,7 @@ import (
 	k8stesting "k8s.io/client-go/testing"
 )
 
-func TestCreateNamespacesErrorsWithoutArgs(t *testing.T) {
+func TestCreateNamespaces_ErrorsWithoutArgs(t *testing.T) {
 	output := &bytes.Buffer{}
 	// k := fakes.NewClient()
 	conf := cli.NewConfig("../config/testdata")
@@ -37,49 +37,7 @@ func TestCreateNamespacesErrorsWithoutArgs(t *testing.T) {
 	}
 }
 
-func TestCreateNamespacesInvalidCluster(t *testing.T) {
-	output := &bytes.Buffer{}
-	// k := fakes.NewClient()
-	conf := cli.NewConfig("../config/testdata")
-	conf.Client = k8s.NewClient("../k8s/testdata/.kube/config")
-	root := kmgmt.CreateRootCommand(conf)
-	root.SetOutput(output)
-	root.SetArgs([]string{"create-namespaces", "cluster-noexiste"})
-
-	err := root.Execute()
-	if err == nil {
-		t.Fatalf("execute should error without args")
-	}
-
-	contents := output.String()
-	if !strings.Contains(contents, "context 'cluster-noexiste' not found\n") {
-		t.Fatal("expected error message: context 'cluster-noexiste' not found")
-	}
-}
-
-func TestCreateNamespacesNoNamespaceFound(t *testing.T) {
-	conf := cli.NewConfig("../config/testdata")
-	conf.Client = fakes.NewClient()
-	root := kmgmt.CreateRootCommand(conf)
-
-	output := &bytes.Buffer{}
-	root.SetOutput(output)
-	conf.Stdout = output
-	conf.Stderr = output
-	root.SetArgs([]string{"create-namespaces", "cluster-3"})
-
-	err := root.Execute()
-	if err == nil {
-		t.Fatalf("execute should return error namespace not found")
-	}
-
-	contents := output.String()
-	if !strings.Contains(contents, "no namespaces found for cluster cluster-3\n") {
-		t.Fatal("expected namespaces to be created")
-	}
-}
-
-func TestCreateNamespacesValidCluster(t *testing.T) {
+func TestCreateNamespaces_ValidCluster(t *testing.T) {
 	conf := cli.NewConfig("../config/testdata")
 	conf.Client = fakes.NewClient()
 	root := kmgmt.CreateRootCommand(conf)
@@ -102,7 +60,49 @@ func TestCreateNamespacesValidCluster(t *testing.T) {
 	}
 }
 
-func TestNamespaceDoesNotExist(t *testing.T) {
+func TestCreateNamespaces_InvalidCluster(t *testing.T) {
+	output := &bytes.Buffer{}
+	// k := fakes.NewClient()
+	conf := cli.NewConfig("../config/testdata")
+	conf.Client = k8s.NewClient("../k8s/testdata/.kube/config")
+	root := kmgmt.CreateRootCommand(conf)
+	root.SetOutput(output)
+	root.SetArgs([]string{"create-namespaces", "cluster-noexiste"})
+
+	err := root.Execute()
+	if err == nil {
+		t.Fatalf("execute should error without args")
+	}
+
+	contents := output.String()
+	if !strings.Contains(contents, "context 'cluster-noexiste' not found\n") {
+		t.Fatal("expected error message: context 'cluster-noexiste' not found")
+	}
+}
+
+func TestCreateNamespaces_NamespacesNotFound(t *testing.T) {
+	conf := cli.NewConfig("../config/testdata")
+	conf.Client = fakes.NewClient()
+	root := kmgmt.CreateRootCommand(conf)
+
+	output := &bytes.Buffer{}
+	root.SetOutput(output)
+	conf.Stdout = output
+	conf.Stderr = output
+	root.SetArgs([]string{"create-namespaces", "cluster-3"})
+
+	err := root.Execute()
+	if err == nil {
+		t.Fatalf("execute should return error namespace not found")
+	}
+
+	contents := output.String()
+	if !strings.Contains(contents, "no namespaces found for cluster cluster-3\n") {
+		t.Fatal("expected namespaces to be created")
+	}
+}
+
+func TestCreateNamespaces_ClusterDoesNotExist(t *testing.T) {
 	conf := &cli.Config{
 		ConfigDir: "../config/testdata",
 		Manager: newManager(
@@ -110,7 +110,7 @@ func TestNamespaceDoesNotExist(t *testing.T) {
 				{
 					Name: "cluster-1",
 				},
-			}, nil, fmt.Errorf("namespace doesn't exist")),
+			}, nil, fmt.Errorf("cluster doesn't exist")),
 	}
 	conf.Client = fakes.NewClient()
 	root := kmgmt.CreateRootCommand(conf)
@@ -127,12 +127,12 @@ func TestNamespaceDoesNotExist(t *testing.T) {
 	}
 
 	contents := output.String()
-	if !strings.Contains(contents, "Error: namespace doesn't exist\n") {
+	if !strings.Contains(contents, "Error: cluster doesn't exist\n") {
 		t.Fatal("expected namespaces to be created")
 	}
 }
 
-func TestCreateInvalidNamespace(t *testing.T) {
+func TestCreateNamespaces_InvalidNamespace(t *testing.T) {
 	c := fakes.NewClient()
 	c.FakeKubeClientset.Fake.PrependReactor("create", "namespaces", func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
 		return true, &v1.Namespace{}, errors.New("error creating namespace")
