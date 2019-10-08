@@ -67,7 +67,7 @@ func NewClient(kubeConfigFile string) Client {
 }
 
 type client struct {
-	k8sClient      corev1.CoreV1Interface
+	kubeClientset  *kubernetes.Clientset
 	kubeConfigFile string
 	kubeConfig     clientcmd.ClientConfig
 	restConfig     *rest.Config
