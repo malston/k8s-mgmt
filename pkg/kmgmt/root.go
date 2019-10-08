@@ -23,6 +23,7 @@ package kmgmt
 
 import (
 	"github.com/malston/k8s-mgmt/pkg/cli"
+	"github.com/malston/k8s-mgmt/pkg/cluster"
 	"github.com/malston/k8s-mgmt/pkg/namespace"
 
 	"github.com/spf13/cobra"
@@ -34,14 +35,10 @@ func CreateRootCommand(config *cli.Config) *cobra.Command {
 		Short: "A brief description of your application",
 		Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application.`,
-		// Uncomment the following line if your bare application
-		// has an action associated with it:
-		//	Run: func(cmd *cobra.Command, args []string) { },
 	}
 
-	namespaceCmd := namespace.NewCommand(config)
-	rootCmd.AddCommand(namespaceCmd)
-	// rootCmd.AddCommand(cluster.NewCommand())
+	rootCmd.AddCommand(namespace.NewCommand(config))
+	rootCmd.AddCommand(cluster.NewCommand(config))
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 

@@ -22,36 +22,44 @@ THE SOFTWARE.
 package cluster
 
 import (
-	"fmt"
+	"strings"
 
+	"github.com/malston/k8s-mgmt/pkg/cli"
+	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/spf13/cobra"
 )
 
-// clusterCmd represents the cluster command
-var clusterCmd = &cobra.Command{
-	Use:   "cluster",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+func NewCommand(conf *cli.Config) *cobra.Command {
+	c := &create{
+		c:   conf,
+		k8s: conf.Client,
+	}
+	cmd := c.command()
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("cluster called")
-	},
+	return cmd
 }
 
-func init() {
-	// createCmd.AddCommand(clusterCmd)
+type create struct {
+	*cobra.Command
+	k8s k8s.Client
 
-	// Here you will define your flags and configuration settings.
+	c *cli.Config
+}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// clusterCmd.PersistentFlags().String("foo", "", "A help for foo")
+func (c *create) command() *cobra.Command {
+	return &cobra.Command{
+		Use:   "create-clusters",
+		Short: "Creates clusters",
+		Long: strings.TrimSpace(`
+Loops through files under the config directory, finds all the cluster folders, 
+opens each cluster.yml file, and creates a new cluster based on contents of the file.
+`),
+		RunE: c.runE,
+		Args: cobra.ExactArgs(0),
+	}
+}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// clusterCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+func (c *create) runE(cmd *cobra.Command, args []string) error {
+	c.c.Printf("Clusters created\n")
+	return nil
 }
