@@ -21,6 +21,9 @@ func (c *client) Core() corev1.CoreV1Interface {
 }
 
 func (c *client) CurrentContext() string {
+	if c.context != "" {
+		return c.context
+	}
 	rc, err := c.lazyLoadKubeConfig().RawConfig()
 	if err != nil {
 		panic(err)
@@ -35,7 +38,7 @@ func (c *client) SetContext(context string) error {
 	}
 	rc, err := c.lazyLoadKubeConfig().RawConfig()
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	for name, cluster := range rc.Clusters {
@@ -47,9 +50,10 @@ func (c *client) SetContext(context string) error {
 			)
 			restConfig, err := c.kubeConfig.ClientConfig()
 			if err != nil {
-				return err
+				panic(err)
 			}
 			c.kubeClientset = kubernetes.NewForConfigOrDie(restConfig)
+			c.context = context
 			return nil
 		}
 	}
@@ -63,10 +67,11 @@ func NewClient(kubeConfigFile string) Client {
 }
 
 type client struct {
-	kubeClientset  *kubernetes.Clientset
+	k8sClient      corev1.CoreV1Interface
 	kubeConfigFile string
 	kubeConfig     clientcmd.ClientConfig
 	restConfig     *rest.Config
+	context        string
 }
 
 func (c *client) lazyLoadKubeConfig() clientcmd.ClientConfig {
