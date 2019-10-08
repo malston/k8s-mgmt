@@ -24,16 +24,18 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/malston/k8s-mgmt/pkg/cli"
 	"github.com/malston/k8s-mgmt/pkg/kmgmt"
-	"github.com/mitchellh/go-homedir"
 )
 
 func main() {
 
-	conf := newConfigClient()
+	conf, err := cli.NewDefaultConfig()
+	if err != nil {
+		fmt.Print(err.Error() + "\n")
+		os.Exit(1)
+	}
 	root := kmgmt.CreateRootCommand(conf)
 	fmt.Println() // Print a blank line before output for readability
 
@@ -41,19 +43,4 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println() // Print a blank line after output for readability
-}
-
-func newConfigClient() *cli.Config {
-	home, err := homedir.Dir()
-	if err != nil {
-		fmt.Print(err.Error() + "\n")
-		os.Exit(1)
-	}
-	configDir := filepath.Join(home, ".k8s-mgmt", "config")
-
-	if mgmtEnvConf, ok := os.LookupEnv("K8SMGMT_HOME"); ok {
-		configDir = mgmtEnvConf
-	}
-
-	return cli.NewConfig(configDir)
 }
