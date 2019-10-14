@@ -10,8 +10,12 @@ type Config struct {
 
 // Cluster
 type Cluster struct {
-	Name       string       `yaml:"name"`
-	Namespaces []*Namespace `yaml:"namespaces"`
+	Name             string       `yaml:"name"`
+	Namespaces       []*Namespace `yaml:"namespaces"`
+	Plan             string       `yaml:"plan"`
+	ExternalHostname string       `yaml:"external-hostname"`
+	NumNodes         string       `yaml:"num-nodes"`
+	NetworkProfile   string       `yaml:"network-profile"`
 	// ClusterRole
 	// ClusterRoleBinding
 }

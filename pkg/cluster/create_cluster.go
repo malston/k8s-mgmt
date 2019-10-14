@@ -25,14 +25,12 @@ import (
 	"strings"
 
 	"github.com/malston/k8s-mgmt/pkg/cli"
-	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/spf13/cobra"
 )
 
 func NewCommand(conf *cli.Config) *cobra.Command {
 	c := &create{
-		c:   conf,
-		k8s: conf.Client,
+		c: conf,
 	}
 	cmd := c.command()
 
@@ -41,8 +39,6 @@ func NewCommand(conf *cli.Config) *cobra.Command {
 
 type create struct {
 	*cobra.Command
-	k8s k8s.Client
-
 	c *cli.Config
 }
 
@@ -60,6 +56,11 @@ opens each cluster.yml file, and creates a new cluster based on contents of the 
 }
 
 func (c *create) runE(cmd *cobra.Command, args []string) error {
-	c.c.Printf("Clusters created\n")
+	m := c.c.Manager
+	clusters, _ := m.GetClusters()
+	for _, cl := range clusters {
+		c.c.PKSClient.CreateCluster(cl)
+		c.c.Printf("Cluster %s created\n", cl.Name)
+	}
 	return nil
 }

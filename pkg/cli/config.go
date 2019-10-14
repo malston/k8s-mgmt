@@ -9,6 +9,7 @@ import (
 
 	"github.com/malston/k8s-mgmt/pkg/config"
 	"github.com/malston/k8s-mgmt/pkg/k8s"
+	"github.com/malston/k8s-mgmt/pkg/pks"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -18,6 +19,7 @@ type Config struct {
 	KubeConfigFile  string
 	ViperConfigFile string
 	k8s.Client
+	PKSClient pks.Client
 	config.Manager
 	ConfigDir string
 	Name      string
@@ -112,6 +114,9 @@ func (c *Config) initKubeConfig() {
 func (c *Config) init() {
 	if c.Client == nil {
 		c.Client = k8s.NewClient(c.KubeConfigFile)
+	}
+	if c.PKSClient == nil {
+		c.PKSClient = pks.NewClient()
 	}
 	if c.Manager == nil {
 		var err error

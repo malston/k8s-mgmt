@@ -26,7 +26,6 @@ import (
 	"strings"
 
 	"github.com/malston/k8s-mgmt/pkg/cli"
-	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -34,8 +33,7 @@ import (
 
 func NewCommand(conf *cli.Config) *cobra.Command {
 	c := &create{
-		c:   conf,
-		k8s: conf.Client,
+		c: conf,
 	}
 	cmd := c.command()
 
@@ -44,8 +42,6 @@ func NewCommand(conf *cli.Config) *cobra.Command {
 
 type create struct {
 	*cobra.Command
-	k8s k8s.Client
-
 	c *cli.Config
 }
 
@@ -63,7 +59,7 @@ opens each namespace.yml file, and creates a new namespace based on contents of 
 }
 
 func (c *create) runE(cmd *cobra.Command, args []string) error {
-	client := c.k8s
+	client := c.c.Client
 	m := c.c.Manager
 	clusterName := args[0]
 	if client.CurrentContext() != clusterName {

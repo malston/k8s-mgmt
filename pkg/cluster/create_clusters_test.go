@@ -5,7 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	fakes "github.com/malston/k8s-mgmt/pkg/testing"
+
 	"github.com/malston/k8s-mgmt/pkg/cli"
+	"github.com/malston/k8s-mgmt/pkg/config"
 	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/malston/k8s-mgmt/pkg/kmgmt"
 )
@@ -30,16 +33,73 @@ func TestCreateClusters_ErrorsWithArgs(t *testing.T) {
 }
 
 func TestCreateClusters(t *testing.T) {
-	output := &bytes.Buffer{}
-	conf := cli.NewConfig("../config/testdata")
-	conf.Client = k8s.NewClient("../k8s/testdata/.kube/config")
+	stubClient := &stubPKSClient{}
+	conf := &cli.Config{
+		ConfigDir: "../config/testdata",
+		Manager: newSpyManager(
+			[]*config.Cluster{
+				{
+					Name: "cluster-1",
+				},
+				{
+					Name: "cluster-2",
+				},
+			}, nil, nil),
+		Client:    fakes.NewKubeClient(),
+		PKSClient: stubClient,
+	}
 	root := kmgmt.CreateRootCommand(conf)
+
+	output := &bytes.Buffer{}
 	root.SetOutput(output)
+	conf.Stdout = output
+	conf.Stderr = output
 	root.SetArgs([]string{"create-clusters"})
 
 	err := root.Execute()
 	if err != nil {
-		t.Fatalf("error should not have occurred")
+		t.Fatalf("execute should not error: %s", err.Error())
 	}
 
+	if expected, actual := 2, stubClient.called; expected != actual {
+		t.Fatalf("expected %d, actual %d", expected, actual)
+	}
+
+	contents := output.String()
+	if expected, actual := "Cluster cluster-1 created\nCluster cluster-2 created\n", contents; !strings.Contains(actual, expected) {
+		t.Fatalf("expected %s, actual %s", expected, actual)
+	}
+}
+
+type stubPKSClient struct {
+	called int
+}
+
+func (m *stubPKSClient) CreateCluster(cluster *config.Cluster) error {
+	m.called++
+	return nil
+}
+
+type spyManager struct {
+	clusters   []*config.Cluster
+	namespaces []*config.Namespace
+	err        error
+}
+
+func newSpyManager(clusters []*config.Cluster, namespaces []*config.Namespace, err error) *spyManager {
+	return &spyManager{clusters, namespaces, err}
+}
+
+func (m *spyManager) GetClusters() ([]*config.Cluster, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.clusters, nil
+}
+
+func (m *spyManager) GetNamespaces(cluster string) ([]*config.Namespace, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.namespaces, nil
 }

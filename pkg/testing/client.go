@@ -26,28 +26,28 @@ import (
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-type FakeClient struct {
+type FakeKubeClient struct {
 	FakeKubeClientset *kubernetes.Clientset
 	Context           string
 }
 
-func (c *FakeClient) Core() corev1.CoreV1Interface {
+func (c *FakeKubeClient) Core() corev1.CoreV1Interface {
 	return c.FakeKubeClientset.CoreV1()
 }
 
-func (c *FakeClient) CurrentContext() string {
+func (c *FakeKubeClient) CurrentContext() string {
 	return c.Context
 }
 
-func (c *FakeClient) SetContext(context string) error {
+func (c *FakeKubeClient) SetContext(context string) error {
 	c.Context = context
 	return nil
 }
 
-func NewClient() *FakeClient {
+func NewKubeClient() *FakeKubeClient {
 	kubeClientset := kubernetes.NewSimpleClientset()
 
-	return &FakeClient{
+	return &FakeKubeClient{
 		FakeKubeClientset: kubeClientset,
 	}
 }
