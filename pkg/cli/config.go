@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/malston/k8s-mgmt/pkg/config"
+	"github.com/malston/k8s-mgmt/pkg/exec"
 	"github.com/malston/k8s-mgmt/pkg/k8s"
 	"github.com/malston/k8s-mgmt/pkg/pks"
 	homedir "github.com/mitchellh/go-homedir"
@@ -116,7 +117,8 @@ func (c *Config) init() {
 		c.Client = k8s.NewClient(c.KubeConfigFile)
 	}
 	if c.PKSClient == nil {
-		c.PKSClient = pks.NewClient()
+		clr := exec.NewCommandLineRunner(os.Stdout)
+		c.PKSClient = pks.NewClient(clr)
 	}
 	if c.Manager == nil {
 		var err error
