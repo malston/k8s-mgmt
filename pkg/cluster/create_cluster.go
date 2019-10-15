@@ -22,6 +22,7 @@ THE SOFTWARE.
 package cluster
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/malston/k8s-mgmt/pkg/cli"
@@ -58,9 +59,18 @@ opens each cluster.yml file, and creates a new cluster based on contents of the 
 func (c *create) runE(cmd *cobra.Command, args []string) error {
 	m := c.c.Manager
 	clusters, _ := m.GetClusters()
+	var errors []string
 	for _, cl := range clusters {
-		c.c.PKSClient.CreateCluster(cl)
+		err := c.c.PKSClient.CreateCluster(cl)
+		if err != nil {
+			errStr := fmt.Sprintf("failed to create cluster %s", cl.Name)
+			errors = append(errors, errStr)
+			continue
+		}
 		c.c.Printf("Cluster %s created\n", cl.Name)
+	}
+	if len(errors) > 0 {
+		return fmt.Errorf(strings.Join(errors, "\n"))
 	}
 	return nil
 }

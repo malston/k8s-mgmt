@@ -2,6 +2,7 @@ package cluster_test
 
 import (
 	"bytes"
+	"errors"
 	"strings"
 	"testing"
 
@@ -71,12 +72,54 @@ func TestCreateClusters(t *testing.T) {
 	}
 }
 
+func TestCreateCluster_FailsWithError(t *testing.T) {
+	stubClient := &stubPKSClient{err: errors.New("failure")}
+	conf := &cli.Config{
+		ConfigDir: "../config/testdata",
+		Manager: newSpyManager(
+			[]*config.Cluster{
+				{
+					Name: "cluster-1",
+				},
+				{
+					Name: "cluster-2",
+				},
+			}, nil, nil),
+		Client:    fakes.NewKubeClient(),
+		PKSClient: stubClient,
+	}
+	root := kmgmt.CreateRootCommand(conf)
+
+	output := &bytes.Buffer{}
+	root.SetOutput(output)
+	conf.Stdout = output
+	conf.Stderr = output
+	root.SetArgs([]string{"create-clusters"})
+
+	err := root.Execute()
+	if err == nil {
+		t.Fatalf("error should have occurred")
+	}
+
+	if expected, actual := 2, stubClient.called; expected != actual {
+		t.Fatalf("expected %d, actual %d", expected, actual)
+	}
+
+	if expected, actual := "Error: failed to create cluster cluster-1\nfailed to create cluster cluster-2", output.String(); !strings.Contains(actual, expected) {
+		t.Fatalf("expected %s, actual %s", expected, actual)
+	}
+}
+
 type stubPKSClient struct {
 	called int
+	err    error
 }
 
 func (m *stubPKSClient) CreateCluster(cluster *config.Cluster) error {
 	m.called++
+	if m.err != nil {
+		return m.err
+	}
 	return nil
 }
 
