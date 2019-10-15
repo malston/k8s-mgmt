@@ -40,10 +40,10 @@ type clr struct {
 	Stderr  io.Writer
 }
 
-func (m *clr) Run(name string, arg ...string) error {
+func (c *clr) Run(name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
-	if m.timeout != 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), m.timeout)
+	if c.timeout != 0 {
+		ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
 		defer cancel()
 		cmd = exec.CommandContext(ctx, name, arg...)
 	}
@@ -57,10 +57,10 @@ func (m *clr) Run(name string, arg ...string) error {
 	}
 
 	outStr, _ := ioutil.ReadAll(stdout)
-	fmt.Fprintf(m.Stdout, "%s", outStr)
+	fmt.Fprintf(c.Stdout, "%s", outStr)
 
 	errStr, _ := ioutil.ReadAll(stderr)
-	fmt.Fprintf(m.Stderr, "%s", errStr)
+	fmt.Fprintf(c.Stderr, "%s", errStr)
 
 	return cmd.Wait()
 }

@@ -105,7 +105,6 @@ func (c *Config) initKubeConfig() {
 	} else {
 		home, err := homedir.Dir()
 		if err != nil {
-			// c.Errorf("%s\n", err)
 			os.Exit(1)
 		}
 		c.KubeConfigFile = filepath.Join(home, ".kube", "config")
@@ -124,7 +123,6 @@ func (c *Config) init() {
 		var err error
 		c.Manager, err = config.NewManager(c.ConfigDir)
 		if err != nil {
-			c.Eprintf("%s\n", err)
 			os.Exit(1)
 		}
 	}
