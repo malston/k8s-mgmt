@@ -9,8 +9,8 @@ type Client interface {
 	CreateCluster(cluster *config.Cluster) error
 }
 
-func (m *pksClient) CreateCluster(cluster *config.Cluster) error {
-	return m.Run("pks", "create-cluster", cluster.Name,
+func (c *pksClient) CreateCluster(cluster *config.Cluster) error {
+	return c.Run("pks", "create-cluster", cluster.Name,
 		"--plan", cluster.Plan,
 		"--num-nodes", cluster.NumNodes,
 		"--external-hostname", cluster.ExternalHostname)
