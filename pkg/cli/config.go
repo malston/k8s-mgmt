@@ -117,7 +117,7 @@ func (c *Config) init() {
 		c.Client = k8s.NewClient(c.KubeConfigFile)
 	}
 	if c.PKSClient == nil {
-		clr := exec.NewCommandLineRunner(os.Stdout)
+		clr := exec.NewCommandLineRunner(os.Stdout, os.Stderr)
 		c.PKSClient = pks.NewClient(clr)
 	}
 	if c.Manager == nil {

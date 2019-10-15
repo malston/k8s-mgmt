@@ -28,19 +28,23 @@ func TestCommandLineRunner(t *testing.T) {
 			args:           "--version",
 			expectedOutput: "",
 		},
+		{
+			name:        "blah",
+			expectError: true,
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual := &bytes.Buffer{}
-			clr := exec.NewCommandLineRunner(actual, exec.WithTimeout(test.timeout))
+			var stdOut, stdErr bytes.Buffer
+			clr := exec.NewCommandLineRunner(&stdOut, &stdErr, exec.WithTimeout(test.timeout))
 			err := clr.Run(test.name, test.args)
-			if err != nil {
+			if err != nil && !test.expectError {
 				t.Fatalf("error should not have occurred: %s", err.Error())
 			}
-			actualOutput := actual.String()
-			if !strings.Contains(actualOutput, test.expectedOutput) {
-				t.Errorf("Unexpected output: %s", actualOutput)
+			actualStdOut := stdOut.String()
+			if !strings.Contains(actualStdOut, test.expectedOutput) {
+				t.Errorf("Unexpected output: %s", actualStdOut)
 			}
 		})
 	}

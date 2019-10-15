@@ -4,10 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
-	"os"
+	"io/ioutil"
 	"os/exec"
-	"sync"
 	"time"
 )
 
@@ -17,10 +15,10 @@ type CommandLineRunner interface {
 
 type option func(*clr)
 
-func NewCommandLineRunner(w io.Writer, opts ...option) CommandLineRunner {
+func NewCommandLineRunner(stdOut io.Writer, stdErr io.Writer, opts ...option) CommandLineRunner {
 	clr := &clr{
-		Stdout: w,
-		Stderr: w,
+		Stdout: stdOut,
+		Stderr: stdErr,
 	}
 
 	for _, o := range opts {
@@ -49,44 +47,20 @@ func (m *clr) Run(name string, arg ...string) error {
 		defer cancel()
 		cmd = exec.CommandContext(ctx, name, arg...)
 	}
-	// cmd.Stdout = m.Stdout
-	// cmd.Stderr = m.Stderr
 
-	// err := cmd.Run()
-	// if err != nil {
-	// 	return err
-	// }
-	// var stdoutBuf, stderrBuf bytes.Buffer
-	stdoutIn, _ := cmd.StdoutPipe()
-	stderrIn, _ := cmd.StderrPipe()
+	stdout, _ := cmd.StdoutPipe()
+	stderr, _ := cmd.StderrPipe()
 
-	var errStdout, errStderr error
-	stdout := io.MultiWriter(os.Stdout, m.Stdout)
-	stderr := io.MultiWriter(os.Stderr, m.Stderr)
 	err := cmd.Start()
 	if err != nil {
-		log.Fatalf("cmd.Start() failed with '%s'\n", err)
+		return fmt.Errorf("command '%s' failed '%v'", name, err)
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
+	outStr, _ := ioutil.ReadAll(stdout)
+	fmt.Fprintf(m.Stdout, "%s", outStr)
 
-	go func() {
-		_, errStdout = io.Copy(stdout, stdoutIn)
-		wg.Done()
-	}()
+	errStr, _ := ioutil.ReadAll(stderr)
+	fmt.Fprintf(m.Stderr, "%s", errStr)
 
-	_, errStderr = io.Copy(stderr, stderrIn)
-	wg.Wait()
-
-	err = cmd.Wait()
-	if err != nil {
-		log.Fatalf("cmd.Run() failed with %s\n", err)
-	}
-	if errStdout != nil || errStderr != nil {
-		log.Fatal("failed to capture stdout or stderr\n")
-	}
-	// outStr, errStr := string(stdoutBuf.Bytes()), string(stderrBuf.Bytes())
-	fmt.Printf("\nout:\n%s\nerr:\n%s\n", m.Stdout, m.Stderr)
-	return nil
+	return cmd.Wait()
 }
