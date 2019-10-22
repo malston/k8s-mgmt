@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"strings"
+	"sync"
 	"testing"
 
 	fakes "github.com/malston/k8s-mgmt/pkg/testing"
@@ -35,6 +36,7 @@ func TestCreateClusters_ErrorsWithArgs(t *testing.T) {
 
 func TestCreateClusters(t *testing.T) {
 	stubClient := &stubPKSClient{}
+	stubClient.wg.Add(5)
 	conf := &cli.Config{
 		ConfigDir: "../config/testdata",
 		Manager: newSpyManager(
@@ -62,18 +64,31 @@ func TestCreateClusters(t *testing.T) {
 		t.Fatalf("execute should not error: %s", err.Error())
 	}
 
-	if expected, actual := 2, stubClient.called; expected != actual {
+	if expected, actual := 5, stubClient.callCount(); expected != actual {
 		t.Fatalf("expected %d, actual %d", expected, actual)
 	}
 
 	contents := output.String()
-	if expected, actual := "Cluster cluster-1 created\nCluster cluster-2 created\n", contents; !strings.Contains(actual, expected) {
+	if expected, actual := "Cluster cluster-1 created", contents; !strings.Contains(actual, expected) {
+		t.Fatalf("expected %s, actual %s", expected, actual)
+	}
+	if expected, actual := "Cluster cluster-2 created\n", contents; !strings.Contains(actual, expected) {
 		t.Fatalf("expected %s, actual %s", expected, actual)
 	}
 }
 
 func TestCreateCluster_FailsWithError(t *testing.T) {
-	stubClient := &stubPKSClient{err: errors.New("failure")}
+	stubClient := &stubPKSClient{
+		stubCluster: []*stubCluster{
+			{
+				name: "cluster-1",
+				err:  errors.New("failure"),
+			},
+			{
+				name: "cluster-2",
+			},
+		}}
+	stubClient.wg.Add(4)
 	conf := &cli.Config{
 		ConfigDir: "../config/testdata",
 		Manager: newSpyManager(
@@ -101,26 +116,58 @@ func TestCreateCluster_FailsWithError(t *testing.T) {
 		t.Fatalf("error should have occurred")
 	}
 
-	if expected, actual := 2, stubClient.called; expected != actual {
+	if expected, actual := 4, stubClient.callCount(); expected != actual {
 		t.Fatalf("expected %d, actual %d", expected, actual)
 	}
 
-	if expected, actual := "Error: failed to create cluster cluster-1\nfailed to create cluster cluster-2", output.String(); !strings.Contains(actual, expected) {
+	if expected, actual := "Error: failed to create cluster cluster-1", output.String(); !strings.Contains(actual, expected) {
 		t.Fatalf("expected %s, actual %s", expected, actual)
 	}
 }
 
-type stubPKSClient struct {
-	called int
-	err    error
+type stubCluster struct {
+	name string
+	err  error
 }
 
-func (m *stubPKSClient) CreateCluster(cluster *config.Cluster) error {
-	m.called++
-	if m.err != nil {
-		return m.err
+type stubPKSClient struct {
+	called      int
+	iterations  int
+	stubCluster []*stubCluster
+	wg          sync.WaitGroup
+}
+
+func (s *stubPKSClient) CreateCluster(cluster *config.Cluster) error {
+	defer s.wg.Done()
+	s.called++
+	for _, c := range s.stubCluster {
+		if cluster.Name == c.name {
+			if c.err != nil {
+				return c.err
+			}
+		}
 	}
 	return nil
+}
+
+func (s *stubPKSClient) ShowCluster(name string) (*config.Cluster, error) {
+	defer s.wg.Done()
+	defer func(i int) { s.iterations += i }(1)
+	s.called++
+	if s.iterations == 0 {
+		return &config.Cluster{
+			Name: name,
+		}, nil
+	}
+	return &config.Cluster{
+		Name:      name,
+		IPAddress: "127.0.0.1",
+	}, nil
+}
+
+func (s *stubPKSClient) callCount() int {
+	s.wg.Wait()
+	return s.called
 }
 
 type spyManager struct {

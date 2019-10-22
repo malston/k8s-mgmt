@@ -24,8 +24,11 @@ package cluster
 import (
 	"fmt"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/malston/k8s-mgmt/pkg/cli"
+	"github.com/malston/k8s-mgmt/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -59,18 +62,71 @@ opens each cluster.yml file, and creates a new cluster based on contents of the 
 func (c *create) runE(cmd *cobra.Command, args []string) error {
 	m := c.c.Manager
 	clusters, _ := m.GetClusters()
-	var errors []string
+
+	errors := make(chan error)
+	results := make(chan *config.Cluster)
+	var errs []string
+	var wg1 sync.WaitGroup
 	for _, cl := range clusters {
-		err := c.c.PKSClient.CreateCluster(cl)
-		if err != nil {
-			errStr := fmt.Sprintf("failed to create cluster %s", cl.Name)
-			errors = append(errors, errStr)
-			continue
+		wg1.Add(1)
+		go c.createCluster(cl, &wg1, results, errors)
+	}
+
+	go func() {
+		wg1.Wait()
+		close(results)
+		close(errors)
+	}()
+
+	go func() {
+		if err := <-errors; err != nil {
+			errs = append(errs, err.Error())
 		}
-		c.c.Printf("Cluster %s created\n", cl.Name)
+	}()
+
+	var wg2 sync.WaitGroup
+	results2 := make(chan *config.Cluster)
+	for res := range results {
+		wg2.Add(1)
+		c.c.Printf("Waiting for cluster %s to complete\n", res.Name)
+		go c.waitForClusterCompletion(res.Name, &wg2, results2)
 	}
-	if len(errors) > 0 {
-		return fmt.Errorf(strings.Join(errors, "\n"))
+
+	go func() {
+		wg2.Wait()
+		close(results2)
+	}()
+
+	for res := range results2 {
+		c.c.Printf("Cluster %s created\n", res.Name)
 	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf(strings.Join(errs, "\n"))
+	}
+
 	return nil
+}
+
+func (c *create) createCluster(cluster *config.Cluster, wg *sync.WaitGroup, results chan<- *config.Cluster, errors chan<- error) {
+	defer wg.Done()
+	err := c.c.PKSClient.CreateCluster(cluster)
+	if err != nil {
+		errors <- fmt.Errorf("failed to create cluster %s, %v", cluster.Name, err)
+		return
+	}
+	results <- cluster
+}
+
+func (c *create) waitForClusterCompletion(name string, wg *sync.WaitGroup, results chan<- *config.Cluster) {
+	defer wg.Done()
+	for {
+		cluster, _ := c.c.PKSClient.ShowCluster(name)
+		if len(cluster.IPAddress) > 0 {
+			results <- cluster
+			return
+		}
+		c.c.Printf("%s", ".")
+		time.Sleep(2 * time.Second)
+	}
 }

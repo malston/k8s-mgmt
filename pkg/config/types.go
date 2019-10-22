@@ -11,6 +11,7 @@ type Config struct {
 // Cluster
 type Cluster struct {
 	Name             string       `yaml:"name"`
+	IPAddress        string       `yaml:"kubernetes_master_ips"`
 	Namespaces       []*Namespace `yaml:"namespaces"`
 	Plan             string       `yaml:"plan"`
 	ExternalHostname string       `yaml:"external-hostname"`

@@ -11,6 +11,7 @@ import (
 
 type CommandLineRunner interface {
 	Run(name string, arg ...string) error
+	RunOutput(name string, arg ...string) ([]byte, error)
 }
 
 type option func(*clr)
@@ -63,4 +64,15 @@ func (c *clr) Run(name string, arg ...string) error {
 	fmt.Fprintf(c.Stderr, "%s", errStr)
 
 	return cmd.Wait()
+}
+
+func (c *clr) RunOutput(name string, arg ...string) ([]byte, error) {
+	cmd := exec.Command(name, arg...)
+	if c.timeout != 0 {
+		ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
+		defer cancel()
+		cmd = exec.CommandContext(ctx, name, arg...)
+	}
+
+	return cmd.CombinedOutput()
 }

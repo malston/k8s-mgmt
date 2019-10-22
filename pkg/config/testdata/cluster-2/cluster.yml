@@ -1,1 +1,5 @@
 name: my-cluster
+plan: test
+num-nodes: 1
+external-hostname: cluster.test.example.com
+network-profile: test-network-profile
