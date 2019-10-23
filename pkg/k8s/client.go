@@ -5,7 +5,6 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -70,7 +69,6 @@ type client struct {
 	kubeClientset  *kubernetes.Clientset
 	kubeConfigFile string
 	kubeConfig     clientcmd.ClientConfig
-	restConfig     *rest.Config
 	context        string
 }
 
