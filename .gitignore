@@ -26,4 +26,5 @@
 # OS turds
 .DS_Store
 
+/bin
 /vendor

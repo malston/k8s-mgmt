@@ -54,12 +54,3 @@ Issue a command like `create-namespaces`.
 
 * Loop through files under the config directory and find all the namespace folders and open each `namespace.yml` file.
 * Create a new namespace based on contents of `namespace.yml`.
-
-### Example Code
-
-```code
-m := config.NewManager("/Users/user/.cfg")
-for n := range m.GetNamespaces() {
-   n.Create()
-}
- ```
