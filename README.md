@@ -1,6 +1,6 @@
 # Kubernetes Management
 
-`k8s-mgmt` provides a set of simple commands that are processed against a directory of files containg the configuration to manage clusters, namespaces, service accounts, roles, pod security policies and more. It's most common to run the CLI as part of a CI pipeline to ensure management of Kubernetes clusters are kept secure and automated for the purpose of auditing and preventing unintended configuration drift.
+`k8s-mgmt` provides a set of simple commands that are processed against a directory of files containing the configuration to manage clusters, namespaces, service accounts, roles, pod security policies and more. It's most common to run the CLI as part of a CI pipeline to ensure management of Kubernetes clusters are kept secure and automated for the purpose of auditing and preventing unintended configuration drift.
 
 There are 2 types of commands: commands that execute against the Kubernetes API and commands that execute against the Pivotal Container Service (PKS) API.
 
