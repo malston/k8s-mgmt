@@ -4,7 +4,7 @@
 
 There are 2 types of commands: commands that execute against the Kubernetes API and commands that execute against the Pivotal Container Service (PKS) API.
 
-You can configure what PKS plan you want a cluster to use by specifying it in the `cluster.yml` file. A cluster yaml file looks like this:
+You can configure the PKS plan you want to use by specifying the plan's name in the `cluster.yml` file. A cluster yaml file looks like this:
 
 ```yaml
 name: my-cluster
@@ -13,6 +13,8 @@ num-nodes: 1
 external-hostname: cluster.test.example.com
 network-profile: test-network-profile
 ```
+
+The `external-hostname` sets the address from which to access Kubernetes API. The `network-profile` is used in NSX-T environments to set the network profile name used to create a network profile if it doesn't exist.
 
 ## Plan Requirements
 
