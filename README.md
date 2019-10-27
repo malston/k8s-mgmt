@@ -1,6 +1,22 @@
 # Kubernetes Management
 
+`k8s-mgmt` provides a set of simple commands that are processed against a directory of files containg the configuration to manage clusters, namespaces, service accounts, roles, pod security policies and more. It's most common to run the CLI as part of a CI pipeline to ensure management of Kubernetes clusters are kept secure and automated for the purpose of auditing and preventing unintended configuration drift.
+
+There are 2 types of commands: commands that execute against the Kubernetes API and commands that execute against the Pivotal Container Service (PKS) API.
+
+You can configure what PKS plan you want a cluster to use by specifying it in the `cluster.yml` file. A cluster yaml file looks like this:
+
+```yaml
+name: my-cluster
+plan: test
+num-nodes: 1
+external-hostname: cluster.test.example.com
+network-profile: test-network-profile
+```
+
 ## Plan Requirements
+
+The `plan` determines what features are enabled on the cluster as well as the total number of master and worker nodes to provision. The `num-nodes` can be specifed in cluster yaml file to override the plan's worker node size. The plan also determines what set of flags are passed in to the `kube-apiserver` process such as `--allow-privileged` and `--enable-admission-plugins` for example.
 
 ### Configure Compute Resources for System Daemons
 
@@ -26,7 +42,7 @@ An [admission controller](https://kubernetes.io/docs/reference/access-authn-auth
 
 ## Namespace Requirements
 
-By default, a Kubernetes cluster will instantiate a default namespace when provisioning the cluster to hold the default set of Pods, Services, and Deployments used by the cluster. Best practice is to subdivide a cluster into multiple namespaces where each team, organization, or application gets its own namespace. You may also want to give each developer a separate namespace ensuring that one developer can not accidentally delete another developers work. Namespaces can also serve as scopes for the deployment of services so that one application's front-end service doesn't interfere with another app's front-end service.
+By default, a Kubernetes cluster will instantiate a default namespace when provisioning the cluster to hold the default set of Pods, Services, and Deployments used by the cluster. Best practice is to subdivide a cluster into multiple namespaces where each team, organization, or application gets its own namespace. You may also want to give each developer a separate namespace ensuring that one developer cannot accidentally delete another developers work. Namespaces can also serve as scopes for the deployment of services so that one application's front-end service doesn't interfere with another app's front-end service.
 
 ### Create and Configure Namespace
 
