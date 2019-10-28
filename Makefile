@@ -1,4 +1,7 @@
 BINARY=kmgmt
+
+.DEFAULT_GOAL := help
+
 test: ## Run test coverage
 	go test -v -cover -covermode=atomic ./...
 
