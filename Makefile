@@ -1,27 +1,39 @@
-BINARY=kmgmt
-
 .DEFAULT_GOAL := help
 
-test: ## Run test coverage
-	go test -v -cover -covermode=atomic ./...
+# Go parameters
+GOCMD=go
+GOBUILD=$(GOCMD) build
+GOCLEAN=$(GOCMD) clean
+GORUN=$(GOCMD) run
+GOLIST=$(GOCMD) list
+GOTEST=$(GOCMD) test
+GOGET=$(GOCMD) get
+GOMOD=$(GOCMD) mod
 
-kmgmt: ## Build the main 'kmgmt' binary
-	go build -o ${BINARY} main.go
+# Binary names
+BINARY=kmgmt
+BINARY_UNIX=$(BINARY)_unix
 
-unittest: ## Run unit tests
-	go test -short  ./...
+build: ## Build the main 'kmgmt' binary
+	$(GOBUILD) -o ${BINARY} main.go
+
+build-linux: ## Build a linux binary
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
 
 clean: ## Clean the working dir and it's compiled binary
 	if [ -f ${BINARY} ] ; then rm ${BINARY} ; fi
 
+unittest: ## Run unit tests
+	$(GOTEST) -short  ./...
+
+test: ## Run test coverage
+	$(GOTEST) -v -cover -covermode=atomic ./...
+
 run: ## Compile and run the main program
-	go run cmd/kmgmt/main.go
+	$(GORUN) cmd/kmgmt/main.go
 
 list: ## Print the current module's dependencies.
-	go list -m all
-
-tidy: ## Remove unused dependencies
-	go mod tidy
+	$(GOLIST) -m all
 
 lint-prepare: ## Install the golangci linter
 	@echo "Installing golangci-lint" 
@@ -36,7 +48,10 @@ lint: ## Run the golangci linter on source code
 		--enable=unconvert \
 		./...
 
+tidy: ## Remove unused dependencies
+	$(GOMOD) tidy
+
 help: ## Print help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: clean install unittest build run lint-prepare lint list tidy help
+.PHONY: build build-linux clean unittest test run list lint-prepare lint tidy help
