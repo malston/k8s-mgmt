@@ -1,24 +1,30 @@
 BINARY=kmgmt
-test: 
+test: ## Run test coverage
 	go test -v -cover -covermode=atomic ./...
 
-engine:
+kmgmt: ## Build the main 'kmgmt' binary
 	go build -o ${BINARY} main.go
 
-unittest:
+unittest: ## Run unit tests
 	go test -short  ./...
 
-clean:
+clean: ## Clean the working dir and it's compiled binary
 	if [ -f ${BINARY} ] ; then rm ${BINARY} ; fi
 
-run:
+run: ## Compile and run the main program
 	go run cmd/kmgmt/main.go
 
-lint-prepare:
+list: ## Print the current module's dependencies.
+	go list -m all
+
+tidy: ## Remove unused dependencies
+	go mod tidy
+
+lint-prepare: ## Install the golangci linter
 	@echo "Installing golangci-lint" 
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s latest
 
-lint:
+lint: ## Run the golangci linter on source code
 	./bin/golangci-lint run \
 		--exclude-use-default=false \
 		--enable=golint \
@@ -27,4 +33,7 @@ lint:
 		--enable=unconvert \
 		./...
 
-.PHONY: clean install unittest build run lint-prepare lint
+help: ## Print help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: clean install unittest build run lint-prepare lint list tidy help
