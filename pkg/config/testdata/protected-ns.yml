@@ -6,3 +6,4 @@ protected_ns:
   - kube-public
   - kube-system
   - pks-system
+  - kube-node-lease
