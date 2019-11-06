@@ -1,4 +1,4 @@
-package namespace_test
+package resourcequota_test
 
 import (
 	"bytes"
@@ -17,14 +17,14 @@ import (
 	k8stesting "k8s.io/client-go/testing"
 )
 
-func TestCreateQuotas_ErrorsWithoutArgs(t *testing.T) {
+func TestCreateResourcequota_ErrorsWithoutArgs(t *testing.T) {
 	output := &bytes.Buffer{}
 	// k := fakes.NewKubeClient()
 	conf := cli.NewConfig("../config/testdata")
 	conf.Client = k8s.NewClient("../k8s/testdata/.kube/config")
 	root := kmgmt.CreateRootCommand(conf)
 	root.SetOutput(output)
-	root.SetArgs([]string{"create-quotas"})
+	root.SetArgs([]string{"create-resourcequota"})
 
 	err := root.Execute()
 	if err == nil {
@@ -37,7 +37,7 @@ func TestCreateQuotas_ErrorsWithoutArgs(t *testing.T) {
 	}
 }
 
-func TestCreateQuotas_ValidCluster(t *testing.T) {
+func TestCreateResourcequota_ValidCluster(t *testing.T) {
 	conf := cli.NewConfig("../config/testdata")
 	conf.Client = fakes.NewKubeClient()
 	root := kmgmt.CreateRootCommand(conf)
@@ -46,7 +46,7 @@ func TestCreateQuotas_ValidCluster(t *testing.T) {
 	root.SetOutput(output)
 	conf.Stdout = output
 	conf.Stderr = output
-	root.SetArgs([]string{"create-quotas", "namespace-1", "kind"})
+	root.SetArgs([]string{"create-resourcequota", "namespace-1", "kind"})
 
 	err := root.Execute()
 	if err != nil {
@@ -55,18 +55,18 @@ func TestCreateQuotas_ValidCluster(t *testing.T) {
 
 	contents := output.String()
 	if !strings.Contains(contents, "resourcequota/default-mem-cpu-quotas created\n") {
-		t.Fatal("expected Quotas to be created")
+		t.Fatal("expected Resourcequota to be created")
 	}
 }
 
-func TestCreateQuotas_InvalidCluster(t *testing.T) {
+func TestCreateResourcequota_InvalidCluster(t *testing.T) {
 	output := &bytes.Buffer{}
 	// k := fakes.NewKubeClient()
 	conf := cli.NewConfig("../config/testdata")
 	conf.Client = k8s.NewClient("../k8s/testdata/.kube/config")
 	root := kmgmt.CreateRootCommand(conf)
 	root.SetOutput(output)
-	root.SetArgs([]string{"create-quotas", "cluster-noexiste", "namespace-1"})
+	root.SetArgs([]string{"create-resourcequota", "cluster-noexiste", "namespace-1"})
 
 	err := root.Execute()
 	if err == nil {
@@ -79,7 +79,7 @@ func TestCreateQuotas_InvalidCluster(t *testing.T) {
 	}
 }
 
-func TestCreateQuotas_NamespacesNotFound(t *testing.T) {
+func TestCreateResourcequota_NamespacesNotFound(t *testing.T) {
 	conf := cli.NewConfig("../config/testdata")
 	conf.Client = fakes.NewKubeClient()
 	root := kmgmt.CreateRootCommand(conf)
@@ -88,7 +88,7 @@ func TestCreateQuotas_NamespacesNotFound(t *testing.T) {
 	root.SetOutput(output)
 	conf.Stdout = output
 	conf.Stderr = output
-	root.SetArgs([]string{"create-quotas", "namespace-3", "kind"})
+	root.SetArgs([]string{"create-resourcequota", "namespace-3", "kind"})
 
 	err := root.Execute()
 	if err == nil {
@@ -101,7 +101,7 @@ func TestCreateQuotas_NamespacesNotFound(t *testing.T) {
 	}
 }
 
-func TestCreateQuotas_ClusterDoesNotExist(t *testing.T) {
+func TestCreateResourcequota_ClusterDoesNotExist(t *testing.T) {
 	conf := &cli.Config{
 		ConfigDir: "../config/testdata",
 		Manager: newManager(
@@ -118,7 +118,7 @@ func TestCreateQuotas_ClusterDoesNotExist(t *testing.T) {
 	root.SetOutput(output)
 	conf.Stdout = output
 	conf.Stderr = output
-	root.SetArgs([]string{"create-quotas", "cluster-1"})
+	root.SetArgs([]string{"create-resourcequota", "cluster-1"})
 
 	err := root.Execute()
 	if err == nil {
@@ -131,7 +131,7 @@ func TestCreateQuotas_ClusterDoesNotExist(t *testing.T) {
 	}
 }
 
-func TestCreateQuotas_InvalidQuotaConfig(t *testing.T) {
+func TestCreateResourcequota_InvalidQuotaConfig(t *testing.T) {
 	c := fakes.NewKubeClient()
 	c.FakeKubeClientset.Fake.PrependReactor("create", "quotas", func(action k8stesting.Action) (handled bool, ret runtime.Object, err error) {
 		return true, &v1.Namespace{}, errors.New("error creating quotas")
@@ -156,7 +156,7 @@ func TestCreateQuotas_InvalidQuotaConfig(t *testing.T) {
 	root.SetOutput(output)
 	conf.Stdout = output
 	conf.Stderr = output
-	root.SetArgs([]string{"create-quotas", "kind"})
+	root.SetArgs([]string{"create-resourcequota", "kind"})
 
 	err := root.Execute()
 	if err == nil {
@@ -170,14 +170,14 @@ func TestCreateQuotas_InvalidQuotaConfig(t *testing.T) {
 }
 
 type stubManager struct {
-	clusters   []*config.Cluster
-	namespaces []*config.Namespace
-	quotas []*config.Quotas
-	err        error
+	clusters       []*config.Cluster
+	namespaces     []*config.Namespace
+	resourcequotas []*config.Resourcequota
+	err            error
 }
 
-func newManager(clusters []*config.Cluster, namespaces []*config.Namespace, quotas[]*config.Quotas err error) *stubManager {
-	return &stubManager{clusters, namespaces, quotas err}
+func newManager(clusters []config.Cluster, namespaces []*config.Namespace, resourcequotas []*config.Resourcequota, err error) *stubManager {
+	return &stubManager{clusters, namespaces, resourcequotas, err}
 }
 
 func (m *stubManager) GetClusters() ([]*config.Cluster, error) {
@@ -187,9 +187,16 @@ func (m *stubManager) GetClusters() ([]*config.Cluster, error) {
 	return m.clusters, nil
 }
 
-func (m *stubManager) GetQuotas(cluster string) ([]*config.Namespace, error)([]*config.Quotas) {
+func (m *stubManager) GetClusters() ([]*config.Namespace, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
-	return m.quotas, nil
+	return m.namespaces, nil
+}
+
+func (m *stubManager) GetResourcequota(namespace string) ([]*config.Resourcequota, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.resourcequotas, nil
 }

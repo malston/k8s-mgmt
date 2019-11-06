@@ -1,6 +1,6 @@
 package config
 
-// ClusterConfig
+// The Config defines a global kubernetes cluster config
 type Config struct {
 	Clusters []*Cluster `yaml:"clusters"`
 	// Quota         []Quota
@@ -8,7 +8,7 @@ type Config struct {
 	// NetworkPolicy []NetworkPolicy
 }
 
-// Cluster
+// The Cluster struct defins a kubernetes cluster
 type Cluster struct {
 	Name             string       `yaml:"name"`
 	IPAddress        string       `yaml:"kubernetes_master_ips"`
@@ -21,12 +21,12 @@ type Cluster struct {
 	// ClusterRoleBinding
 }
 
-// Namespace
+// The Namespace defins namespaces for kubernetes
 type Namespace struct {
 	Name string `yaml:"name"`
 	// Role
 	// RoleBinding
-	// Quota         []Quota
+	Resourcequota []Resourcequota
 	// Limit         []Limit
 	// NetworkPolicy []NetworkPolicy
 }
@@ -37,8 +37,14 @@ type Namespace struct {
 // type Limit struct {
 // }
 
-// type Quota struct {
-// }
+// The Resourcequota struct defines quotas for a kubernetes namespace
+type Resourcequota struct {
+	Name           string  `yaml:"name"`
+	Requestscpu    float64 `yaml:"requests.cpu"`
+	Requestsmemory string  `yaml:"reqeusts.memory"`
+	Limitscpu      float64 `yaml:"limits.cpu"`
+	Limitsmemory   string  `yaml:"limits.memory"`
+}
 
 // type NetworkPolicy struct {
 // }

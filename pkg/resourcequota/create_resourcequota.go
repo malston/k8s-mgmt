@@ -1,3 +1,5 @@
+package resourcequota
+
 /*
 Copyright © 2019 Mark Alston <marktalston@gmail.com>
 
@@ -19,7 +21,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package namespace
 
 import (
 	"fmt"
@@ -31,6 +32,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// NewCommand Configure cobra cli sub function
 func NewCommand(conf *cli.Config) *cobra.Command {
 	c := &create{
 		c: conf,
