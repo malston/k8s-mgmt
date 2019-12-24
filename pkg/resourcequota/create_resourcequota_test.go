@@ -19,9 +19,25 @@ import (
 
 func TestCreateResourcequota_ErrorsWithoutArgs(t *testing.T) {
 	output := &bytes.Buffer{}
-	// k := fakes.NewKubeClient()
-	conf := cli.NewConfig("../config/testdata")
-	conf.Client = k8s.NewClient("../k8s/testdata/.kube/config")
+	// conf := cli.NewConfig("../config/testdata")
+	conf := &cli.Config{
+		ConfigDir: "../config/testdata",
+		Manager: newManager(
+			[]*config.Cluster{
+				{
+					Name: "cluster-1",
+				},
+			},
+			[]*config.Namespace{
+				{
+					Name: "namespace-1",
+				},
+			},
+			*config.Resourcequota{},
+			fmt.Errorf("cluster doesn't exist")),
+	}
+
+	conf.Client = fakes.NewKubeClient()
 	root := kmgmt.CreateRootCommand(conf)
 	root.SetOutput(output)
 	root.SetArgs([]string{"create-resourcequota"})
@@ -109,7 +125,10 @@ func TestCreateResourcequota_ClusterDoesNotExist(t *testing.T) {
 				{
 					Name: "cluster-1",
 				},
-			}, nil, fmt.Errorf("cluster doesn't exist")),
+			},
+			nil,
+			nil,
+			fmt.Errorf("cluster doesn't exist")),
 	}
 	conf.Client = fakes.NewKubeClient()
 	root := kmgmt.CreateRootCommand(conf)
@@ -144,9 +163,8 @@ func TestCreateResourcequota_InvalidQuotaConfig(t *testing.T) {
 					Name: "cluster-1",
 				},
 			},
-			[]*config.Namespace{
-				{},
-			},
+			[]*config.Namespace{},
+			[]*config.Resourcequota{},
 			nil),
 	}
 	conf.Client = c
@@ -170,14 +188,14 @@ func TestCreateResourcequota_InvalidQuotaConfig(t *testing.T) {
 }
 
 type stubManager struct {
-	clusters       []*config.Cluster
-	namespaces     []*config.Namespace
-	resourcequotas []*config.Resourcequota
-	err            error
+	clusters      []*config.Cluster
+	namespaces    []*config.Namespace
+	resourcequota *config.Resourcequota
+	err           error
 }
 
-func newManager(clusters []config.Cluster, namespaces []*config.Namespace, resourcequotas []*config.Resourcequota, err error) *stubManager {
-	return &stubManager{clusters, namespaces, resourcequotas, err}
+func newManager(clusters []*config.Cluster, namespaces []*config.Namespace, resourcequota *config.Resourcequota, err error) *stubManager {
+	return &stubManager{clusters, namespaces, resourcequota, err}
 }
 
 func (m *stubManager) GetClusters() ([]*config.Cluster, error) {
@@ -187,16 +205,16 @@ func (m *stubManager) GetClusters() ([]*config.Cluster, error) {
 	return m.clusters, nil
 }
 
-func (m *stubManager) GetClusters() ([]*config.Namespace, error) {
+func (m *stubManager) GetNamespaces(cluster string) ([]*config.Namespace, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
 	return m.namespaces, nil
 }
 
-func (m *stubManager) GetResourcequota(namespace string) ([]*config.Resourcequota, error) {
+func (m *stubManager) GetResourcequota(namespace string) (*config.Resourcequota, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
-	return m.resourcequotas, nil
+	return m.resourcequota, nil
 }
