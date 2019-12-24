@@ -25,6 +25,7 @@ import (
 	"github.com/malston/k8s-mgmt/pkg/cli"
 	"github.com/malston/k8s-mgmt/pkg/cluster"
 	"github.com/malston/k8s-mgmt/pkg/namespace"
+	"github.com/malston/k8s-mgmt/pkg/resourcequota"
 
 	"github.com/spf13/cobra"
 )
@@ -39,6 +40,7 @@ examples and usage of using your application.`,
 
 	rootCmd.AddCommand(namespace.NewCommand(config))
 	rootCmd.AddCommand(cluster.NewCommand(config))
+	rootCmd.AddCommand(resourcequota.NewCommand(config))
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 

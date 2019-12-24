@@ -14,6 +14,7 @@ import (
 type Manager interface {
 	GetClusters() ([]*Cluster, error)
 	GetNamespaces(cluster string) ([]*Namespace, error)
+	GetResourcequota(namespace string) (*Resourcequota, error)
 }
 
 type configmanager struct {
@@ -40,6 +41,10 @@ func (m *configmanager) GetClusters() ([]*Cluster, error) {
 		return nil, err
 	}
 	return m.config.Clusters, nil
+}
+
+func (m *configmanager) GetResourcequota(namespace string) ([]*Resourcequota, error) {
+	return nil, nil
 }
 
 func (m *configmanager) GetNamespaces(cluster string) ([]*Namespace, error) {

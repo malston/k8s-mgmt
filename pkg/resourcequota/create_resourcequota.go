@@ -24,7 +24,6 @@ THE SOFTWARE.
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/malston/k8s-mgmt/pkg/cli"
 	"github.com/spf13/cobra"
@@ -49,14 +48,10 @@ type create struct {
 
 func (c *create) command() *cobra.Command {
 	return &cobra.Command{
-		Use:   "create-namespaces <cluster-name>",
-		Short: "Creates namespaces",
-		Long: strings.TrimSpace(`
-Loops through files under the config directory, finds all the namespace folders, 
-opens each namespace.yml file, and creates a new namespace based on contents of the file.
-`),
-		RunE: c.runE,
-		Args: cobra.ExactArgs(1),
+		Use:   "create-resourcequota",
+		Short: "Creates resource quotas",
+		RunE:  c.runE,
+		Args:  cobra.ExactArgs(1),
 	}
 }
 
@@ -79,16 +74,19 @@ func (c *create) runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("no namespaces found for cluster %s", clusterName)
 	}
 	for _, ns := range namespaces {
-		n, e := client.Core().Namespaces().Create(&v1.Namespace{
+		rq := m.GetResourcequota(ns)
+		n, e := client.Core().ResourceQuotas(ns).Create(&v1.ResourceQuota{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: ns.Name,
+				Name: rq.Name,
 			},
+			Spec: ResourceSpec{
+			}
 		})
 		if e != nil {
 			return e
 		}
 
-		c.c.Printf("Namespace %s created\n", n.GetName())
+		c.c.Printf("Resource quota %s created\n", n.GetName())
 	}
 
 	return err
