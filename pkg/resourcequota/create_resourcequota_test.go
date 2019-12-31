@@ -198,7 +198,7 @@ func (m *stubManager) GetNamespaces(cluster string) ([]*config.Namespace, error)
 	return m.namespaces, nil
 }
 
-func (m *stubManager) GetResourceQuota(cluster string) (*config.ResourceQuota, error) {
+func (m *stubManager) GetResourceQuota(namespace string) (*config.ResourceQuota, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
