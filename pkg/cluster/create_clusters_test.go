@@ -38,7 +38,6 @@ func TestCreateClusters(t *testing.T) {
 	stubClient := &stubPKSClient{}
 	stubClient.wg.Add(5)
 	conf := &cli.Config{
-		ConfigDir: "../config/testdata",
 		Manager: newSpyManager(
 			[]*config.Cluster{
 				{
@@ -159,6 +158,7 @@ func (s *stubPKSClient) ShowCluster(name string) (*config.Cluster, error) {
 			Name: name,
 		}, nil
 	}
+	s.iterations = 0
 	return &config.Cluster{
 		Name:      name,
 		IPAddress: "127.0.0.1",
@@ -192,4 +192,11 @@ func (m *spyManager) GetNamespaces(cluster string) ([]*config.Namespace, error) 
 		return nil, m.err
 	}
 	return m.namespaces, nil
+}
+
+func (m *spyManager) GetResourceQuota(cluster string) (*config.ResourceQuota, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return nil, nil
 }

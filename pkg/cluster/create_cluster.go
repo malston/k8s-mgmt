@@ -61,20 +61,20 @@ opens each cluster.yml file, and creates a new cluster based on contents of the 
 
 func (c *create) runE(cmd *cobra.Command, args []string) error {
 	m := c.c.Manager
-	clusters, _ := m.GetClusters()
-
 	errors := make(chan error)
-	results := make(chan *config.Cluster)
+	started := make(chan *config.Cluster)
 	var errs []string
-	var wg1 sync.WaitGroup
+	var startedWG sync.WaitGroup
+
+	clusters, _ := m.GetClusters()
 	for _, cl := range clusters {
-		wg1.Add(1)
-		go c.createCluster(cl, &wg1, results, errors)
+		startedWG.Add(1)
+		go c.createCluster(cl, &startedWG, started, errors)
 	}
 
 	go func() {
-		wg1.Wait()
-		close(results)
+		startedWG.Wait()
+		close(started)
 		close(errors)
 	}()
 
@@ -84,20 +84,20 @@ func (c *create) runE(cmd *cobra.Command, args []string) error {
 		}
 	}()
 
-	var wg2 sync.WaitGroup
-	results2 := make(chan *config.Cluster)
-	for res := range results {
-		wg2.Add(1)
+	var finishedWG sync.WaitGroup
+	finished := make(chan *config.Cluster)
+	for res := range started {
+		finishedWG.Add(1)
 		c.c.Printf("Waiting for cluster %s to complete\n", res.Name)
-		go c.waitForClusterCompletion(res.Name, &wg2, results2)
+		go c.waitForClusterCompletion(res.Name, &finishedWG, finished)
 	}
 
 	go func() {
-		wg2.Wait()
-		close(results2)
+		finishedWG.Wait()
+		close(finished)
 	}()
 
-	for res := range results2 {
+	for res := range finished {
 		c.c.Printf("Cluster %s created\n", res.Name)
 	}
 

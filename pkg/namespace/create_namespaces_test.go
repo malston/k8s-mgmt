@@ -145,7 +145,9 @@ func TestCreateNamespaces_InvalidNamespace(t *testing.T) {
 				},
 			},
 			[]*config.Namespace{
-				{},
+				{
+					Name: "namespace-1",
+				},
 			},
 			nil),
 	}
@@ -165,7 +167,7 @@ func TestCreateNamespaces_InvalidNamespace(t *testing.T) {
 
 	contents := output.String()
 	if !strings.Contains(contents, "Error: error creating namespace") {
-		t.Fatal("expected namespaces to be created")
+		t.Fatalf("expected error message: 'error creating namespace', got %s", contents)
 	}
 }
 
@@ -191,4 +193,11 @@ func (m *stubManager) GetNamespaces(cluster string) ([]*config.Namespace, error)
 		return nil, m.err
 	}
 	return m.namespaces, nil
+}
+
+func (m *stubManager) GetResourceQuota(cluster string) (*config.ResourceQuota, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return nil, nil
 }
