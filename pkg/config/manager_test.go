@@ -23,8 +23,8 @@ func TestYamlMarshalledIntoClusterConfig(t *testing.T) {
 	if len(clusters) == 0 {
 		t.Errorf("error populating clusters: %s", err)
 	}
-	if len(clusters) != 2 {
-		t.Errorf("expected 2, got %d clusters", len(clusters))
+	if len(clusters) != 3 {
+		t.Errorf("expected 3, got %d clusters", len(clusters))
 	}
 	if len(clusters[0].Namespaces) != 2 {
 		t.Errorf("expected 2, got %d namespaces", len(clusters[0].Namespaces))
@@ -80,6 +80,18 @@ func TestNamespacesAreEmpty(t *testing.T) {
 }
 
 func TestClusterDoesNotExist(t *testing.T) {
+	m, err := config.NewManager("./testdata")
+	if err != nil {
+		t.Fatal("error should not occur")
+	}
+	name := "cluster-noexiste"
+	ns, err := m.GetNamespaces(name)
+	if len(ns) != 0 {
+		t.Fatal("should return error when given a cluster name that doesn't exist")
+	}
+}
+
+func TestClusterInFolderDoesNotExist(t *testing.T) {
 	m, _ := config.NewManager("./testdata/noclusters")
 	name := "cluster-noexiste"
 	_, err := m.GetNamespaces(name)

@@ -23,11 +23,10 @@ THE SOFTWARE.
 */
 
 import (
-	"fmt"
-
 	"github.com/malston/k8s-mgmt/pkg/cli"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
+	resource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -48,8 +47,8 @@ type create struct {
 
 func (c *create) command() *cobra.Command {
 	return &cobra.Command{
-		Use:   "create-resourcequota",
-		Short: "Creates resource quotas",
+		Use:   "create-resourcequota <namespace>",
+		Short: "Create resourcequota for a given namespace",
 		RunE:  c.runE,
 		Args:  cobra.ExactArgs(1),
 	}
@@ -58,36 +57,29 @@ func (c *create) command() *cobra.Command {
 func (c *create) runE(cmd *cobra.Command, args []string) error {
 	client := c.c.Client
 	m := c.c.Manager
-	clusterName := args[0]
-	if client.CurrentContext() != clusterName {
-		err := client.SetContext(clusterName)
-		//TODO wrap error
-		if err != nil {
-			return err
-		}
-	}
-	namespaces, err := m.GetNamespaces(clusterName)
+	namespace := args[0]
+	rq, err := m.GetResourceQuota(namespace)
 	if err != nil {
 		return err
 	}
-	if len(namespaces) == 0 {
-		return fmt.Errorf("no namespaces found for cluster %s", clusterName)
-	}
-	for _, ns := range namespaces {
-		rq := m.GetResourcequota(ns)
-		n, e := client.Core().ResourceQuotas(ns).Create(&v1.ResourceQuota{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: rq.Name,
+	r, e := client.Core().ResourceQuotas(namespace).Create(&v1.ResourceQuota{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: rq.Name,
+		},
+		Spec: v1.ResourceQuotaSpec{
+			Hard: v1.ResourceList{
+				v1.ResourceCPU:          resource.MustParse(rq.RequestsCPU),
+				v1.ResourceMemory:       resource.MustParse(rq.RequestsMemory),
+				v1.ResourceLimitsCPU:    resource.MustParse(rq.LimitsCPU),
+				v1.ResourceLimitsMemory: resource.MustParse(rq.LimitsMemory),
 			},
-			Spec: ResourceSpec{
-			}
-		})
-		if e != nil {
-			return e
-		}
-
-		c.c.Printf("Resource quota %s created\n", n.GetName())
+		},
+	})
+	if e != nil {
+		return e
 	}
+
+	c.c.Printf("resourcequota/%s created\n", r.GetName())
 
 	return err
 }

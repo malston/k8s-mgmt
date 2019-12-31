@@ -26,7 +26,7 @@ type Namespace struct {
 	Name string `yaml:"name"`
 	// Role
 	// RoleBinding
-	Resourcequota []Resourcequota
+	ResourceQuota []ResourceQuota
 	// Limit         []Limit
 	// NetworkPolicy []NetworkPolicy
 }
@@ -37,13 +37,13 @@ type Namespace struct {
 // type Limit struct {
 // }
 
-// The Resourcequota struct defines quotas for a kubernetes namespace
-type Resourcequota struct {
-	Name           string  `yaml:"name"`
-	Requestscpu    float64 `yaml:"requests.cpu"`
-	Requestsmemory string  `yaml:"reqeusts.memory"`
-	Limitscpu      float64 `yaml:"limits.cpu"`
-	Limitsmemory   string  `yaml:"limits.memory"`
+// ResourceQuota defines quotas for a kubernetes namespace
+type ResourceQuota struct {
+	Name           string `yaml:"name"`
+	RequestsCPU    string `yaml:"requests.cpu"`
+	RequestsMemory string `yaml:"reqeusts.memory"`
+	LimitsCPU      string `yaml:"limits.cpu"`
+	LimitsMemory   string `yaml:"limits.memory"`
 }
 
 // type NetworkPolicy struct {
