@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	fakes "github.com/malston/k8s-mgmt/pkg/testing"
+	v1 "k8s.io/api/core/v1"
 
 	"github.com/malston/k8s-mgmt/pkg/cli"
 	"github.com/malston/k8s-mgmt/pkg/config"
@@ -38,7 +39,7 @@ func TestCreateClusters(t *testing.T) {
 	stubClient := &stubPKSClient{}
 	stubClient.wg.Add(5)
 	conf := &cli.Config{
-		Manager: newSpyManager(
+		Manager: newStubManager(
 			[]*config.Cluster{
 				{
 					Name: "cluster-1",
@@ -90,7 +91,7 @@ func TestCreateCluster_FailsWithError(t *testing.T) {
 	stubClient.wg.Add(4)
 	conf := &cli.Config{
 		ConfigDir: "../config/testdata",
-		Manager: newSpyManager(
+		Manager: newStubManager(
 			[]*config.Cluster{
 				{
 					Name: "cluster-1",
@@ -170,31 +171,31 @@ func (s *stubPKSClient) callCount() int {
 	return s.called
 }
 
-type spyManager struct {
+type stubManager struct {
 	clusters   []*config.Cluster
 	namespaces []*config.Namespace
 	err        error
 }
 
-func newSpyManager(clusters []*config.Cluster, namespaces []*config.Namespace, err error) *spyManager {
-	return &spyManager{clusters, namespaces, err}
+func newStubManager(clusters []*config.Cluster, namespaces []*config.Namespace, err error) *stubManager {
+	return &stubManager{clusters, namespaces, err}
 }
 
-func (m *spyManager) GetClusters() ([]*config.Cluster, error) {
+func (m *stubManager) GetClusters() ([]*config.Cluster, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
 	return m.clusters, nil
 }
 
-func (m *spyManager) GetNamespaces(cluster string) ([]*config.Namespace, error) {
+func (m *stubManager) GetNamespaces(cluster string) ([]*config.Namespace, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
 	return m.namespaces, nil
 }
 
-func (m *spyManager) GetResourceQuota(cluster string) (*config.ResourceQuota, error) {
+func (m *stubManager) GetResourceQuota(cluster string) (*v1.ResourceQuota, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

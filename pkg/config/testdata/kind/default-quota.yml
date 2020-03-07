@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ResourceQuota
 metadata:
-  name: default-mem-cpu-quotas
+  name: default-mem-cpu-quota
 spec:
   hard:
     requests.cpu: "1"

@@ -1,5 +1,7 @@
 package config
 
+import v1 "k8s.io/api/core/v1"
+
 // The Config defines a global kubernetes cluster config
 type Config struct {
 	Clusters []*Cluster `yaml:"clusters"`
@@ -26,7 +28,8 @@ type Namespace struct {
 	Name string `yaml:"name"`
 	// Role
 	// RoleBinding
-	ResourceQuota []ResourceQuota
+	ResourceQuota *v1.ResourceQuota
+
 	// Limit         []Limit
 	// NetworkPolicy []NetworkPolicy
 }
@@ -36,15 +39,6 @@ type Namespace struct {
 
 // type Limit struct {
 // }
-
-// ResourceQuota defines quotas for a kubernetes namespace
-type ResourceQuota struct {
-	Name           string `yaml:"name"`
-	RequestsCPU    string `yaml:"requests.cpu"`
-	RequestsMemory string `yaml:"reqeusts.memory"`
-	LimitsCPU      string `yaml:"limits.cpu"`
-	LimitsMemory   string `yaml:"limits.memory"`
-}
 
 // type NetworkPolicy struct {
 // }

@@ -25,9 +25,6 @@ THE SOFTWARE.
 import (
 	"github.com/malston/k8s-mgmt/pkg/cli"
 	"github.com/spf13/cobra"
-	v1 "k8s.io/api/core/v1"
-	resource "k8s.io/apimachinery/pkg/api/resource"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // NewCommand Configure cobra cli sub function
@@ -62,19 +59,7 @@ func (c *create) runE(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	r, e := client.Core().ResourceQuotas(namespace).Create(&v1.ResourceQuota{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: rq.Name,
-		},
-		Spec: v1.ResourceQuotaSpec{
-			Hard: v1.ResourceList{
-				v1.ResourceCPU:          resource.MustParse(rq.RequestsCPU),
-				v1.ResourceMemory:       resource.MustParse(rq.RequestsMemory),
-				v1.ResourceLimitsCPU:    resource.MustParse(rq.LimitsCPU),
-				v1.ResourceLimitsMemory: resource.MustParse(rq.LimitsMemory),
-			},
-		},
-	})
+	r, e := client.Core().ResourceQuotas(namespace).Create(rq)
 	if e != nil {
 		return e
 	}

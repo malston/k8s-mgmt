@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/malston/k8s-mgmt/pkg/config"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestInvalidValidConfigDirectory(t *testing.T) {
@@ -28,9 +32,18 @@ func TestYamlMarshalledIntoClusterConfig(t *testing.T) {
 	}
 	if len(clusters[0].Namespaces) != 2 {
 		t.Errorf("expected 2, got %d namespaces", len(clusters[0].Namespaces))
+		if clusters[0].Namespaces[0].ResourceQuota == nil {
+			t.Errorf("expected resource quota not to be nil for namespace %s", clusters[0].Namespaces[0].Name)
+		}
+		if clusters[0].Namespaces[1].ResourceQuota == nil {
+			t.Errorf("expected resource quota not to be nil for namespace %s", clusters[0].Namespaces[0].Name)
+		}
 	}
 	if len(clusters[1].Namespaces) != 1 {
 		t.Errorf("expected 1, got %d namespaces", len(clusters[1].Namespaces))
+		if clusters[0].Namespaces[0].ResourceQuota == nil {
+			t.Errorf("expected resource quota not to be nil for namespace %s", clusters[0].Namespaces[0].Name)
+		}
 	}
 }
 
@@ -100,5 +113,33 @@ func TestClusterInFolderDoesNotExist(t *testing.T) {
 	}
 	if err.Error() != fmt.Sprintf("cluster %s does not exist in config folder", name) {
 		t.Fatal("should return correct error message")
+	}
+}
+
+func TestResourceQuotaIsCreatedForAllNamespaces(t *testing.T) {
+	m, _ := config.NewManager("./testdata")
+	got, err := m.GetResourceQuota("namespace-1")
+	if err != nil {
+		t.Errorf("error creating resource quota %s", err)
+	}
+	want := &v1.ResourceQuota{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ResourceQuota",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "default-mem-cpu-quota",
+		},
+		Spec: v1.ResourceQuotaSpec{
+			Hard: v1.ResourceList{
+				v1.ResourceRequestsCPU:    resource.MustParse("1"),
+				v1.ResourceRequestsMemory: resource.MustParse("1Gi"),
+				v1.ResourceLimitsCPU:      resource.MustParse("2"),
+				v1.ResourceLimitsMemory:   resource.MustParse("2Gi"),
+			},
+		},
+	}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("GetResourceQuota() mismatch (-want +got):\n%s", diff)
 	}
 }

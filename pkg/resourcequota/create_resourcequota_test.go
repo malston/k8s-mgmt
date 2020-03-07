@@ -12,6 +12,8 @@ import (
 	"github.com/malston/k8s-mgmt/pkg/kmgmt"
 	fakes "github.com/malston/k8s-mgmt/pkg/testing"
 	v1 "k8s.io/api/core/v1"
+	resource "k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	k8stesting "k8s.io/client-go/testing"
 )
@@ -31,7 +33,7 @@ func TestCreateResourceQuota_ErrorsWithoutArgs(t *testing.T) {
 					Name: "namespace-1",
 				},
 			},
-			&config.ResourceQuota{},
+			&v1.ResourceQuota{},
 			fmt.Errorf("cluster doesn't exist")),
 	}
 	conf.Client = fakes.NewKubeClient()
@@ -64,12 +66,18 @@ func TestCreateResourceQuota(t *testing.T) {
 					Name: "namespace-1",
 				},
 			},
-			&config.ResourceQuota{
-				Name:           "default-mem-cpu-quotas",
-				RequestsCPU:    "1",
-				RequestsMemory: "1Gi",
-				LimitsCPU:      "2",
-				LimitsMemory:   "2Gi",
+			&v1.ResourceQuota{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default-mem-cpu-quota",
+				},
+				Spec: v1.ResourceQuotaSpec{
+					Hard: v1.ResourceList{
+						v1.ResourceRequestsCPU:    resource.MustParse("1"),
+						v1.ResourceRequestsMemory: resource.MustParse("1Gi"),
+						v1.ResourceLimitsCPU:      resource.MustParse("2"),
+						v1.ResourceLimitsMemory:   resource.MustParse("2Gi"),
+					},
+				},
 			},
 			nil),
 	}
@@ -88,7 +96,7 @@ func TestCreateResourceQuota(t *testing.T) {
 	}
 
 	contents := output.String()
-	if !strings.Contains(contents, "resourcequota/default-mem-cpu-quotas created\n") {
+	if !strings.Contains(contents, "resourcequota/default-mem-cpu-quota created\n") {
 		t.Fatalf("expected ResourceQuota to be created, got %s", contents)
 	}
 }
@@ -144,12 +152,18 @@ func TestCreateResourceQuota_InvalidResourceQuotaConfig(t *testing.T) {
 					Name: "namespace-1",
 				},
 			},
-			&config.ResourceQuota{
-				Name:           "default-mem-cpu-quotas",
-				RequestsCPU:    "1",
-				RequestsMemory: "1Gi",
-				LimitsCPU:      "2",
-				LimitsMemory:   "2Gi",
+			&v1.ResourceQuota{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default-mem-cpu-quota",
+				},
+				Spec: v1.ResourceQuotaSpec{
+					Hard: v1.ResourceList{
+						v1.ResourceRequestsCPU:    resource.MustParse("1"),
+						v1.ResourceRequestsMemory: resource.MustParse("1Gi"),
+						v1.ResourceLimitsCPU:      resource.MustParse("2"),
+						v1.ResourceLimitsMemory:   resource.MustParse("2Gi"),
+					},
+				},
 			},
 			nil),
 	}
@@ -176,11 +190,11 @@ func TestCreateResourceQuota_InvalidResourceQuotaConfig(t *testing.T) {
 type stubManager struct {
 	clusters      []*config.Cluster
 	namespaces    []*config.Namespace
-	resourcequota *config.ResourceQuota
+	resourcequota *v1.ResourceQuota
 	err           error
 }
 
-func newManager(clusters []*config.Cluster, namespaces []*config.Namespace, resourcequota *config.ResourceQuota, err error) *stubManager {
+func newManager(clusters []*config.Cluster, namespaces []*config.Namespace, resourcequota *v1.ResourceQuota, err error) *stubManager {
 	return &stubManager{clusters, namespaces, resourcequota, err}
 }
 
@@ -198,7 +212,7 @@ func (m *stubManager) GetNamespaces(cluster string) ([]*config.Namespace, error)
 	return m.namespaces, nil
 }
 
-func (m *stubManager) GetResourceQuota(namespace string) (*config.ResourceQuota, error) {
+func (m *stubManager) GetResourceQuota(namespace string) (*v1.ResourceQuota, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
