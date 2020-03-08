@@ -19,9 +19,8 @@ import (
 
 func TestCreateNamespaces_ErrorsWithoutArgs(t *testing.T) {
 	output := &bytes.Buffer{}
-	// k := fakes.NewKubeClient()
 	conf := cli.NewConfig("../config/testdata")
-	conf.Client = k8s.NewClient("../k8s/testdata/.kube/config")
+	conf.Client = fakes.NewKubeClient()
 	root := kmgmt.CreateRootCommand(conf)
 	root.SetOutput(output)
 	root.SetArgs([]string{"create-namespaces"})
@@ -195,7 +194,7 @@ func (m *stubManager) GetNamespaces(cluster string) ([]*config.Namespace, error)
 	return m.namespaces, nil
 }
 
-func (m *stubManager) GetResourceQuota(cluster string) (*v1.ResourceQuota, error) {
+func (m *stubManager) GetResourceQuota(cluster string, namespace string) (*v1.ResourceQuota, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

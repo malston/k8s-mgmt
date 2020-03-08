@@ -47,7 +47,7 @@ type create struct {
 
 func (c *create) command() *cobra.Command {
 	return &cobra.Command{
-		Use:   "create-namespaces <cluster-name>",
+		Use:   "create-namespaces <cluster>",
 		Short: "Creates namespaces",
 		Long: strings.TrimSpace(`
 Loops through files under the config directory, finds all the namespace folders, 
@@ -61,20 +61,20 @@ opens each namespace.yml file, and creates a new namespace based on contents of 
 func (c *create) runE(cmd *cobra.Command, args []string) error {
 	client := c.c.Client
 	m := c.c.Manager
-	clusterName := args[0]
-	if client.CurrentContext() != clusterName {
-		err := client.SetContext(clusterName)
+	cluster := args[0]
+	if client.CurrentContext() != cluster {
+		err := client.SetContext(cluster)
 		//TODO wrap error
 		if err != nil {
 			return err
 		}
 	}
-	namespaces, err := m.GetNamespaces(clusterName)
+	namespaces, err := m.GetNamespaces(cluster)
 	if err != nil {
 		return err
 	}
 	if len(namespaces) == 0 {
-		return fmt.Errorf("no namespaces found for cluster %s", clusterName)
+		return fmt.Errorf("no namespaces found for cluster %s", cluster)
 	}
 	for _, ns := range namespaces {
 		n, e := client.Core().Namespaces().Create(&v1.Namespace{

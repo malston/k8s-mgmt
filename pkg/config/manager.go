@@ -16,7 +16,7 @@ import (
 // Manager provides all the configuration mgmt functions
 type Manager interface {
 	GetClusters() ([]*Cluster, error)
-	GetResourceQuota(namespace string) (*v1.ResourceQuota, error)
+	GetResourceQuota(cluster string, namespace string) (*v1.ResourceQuota, error)
 	GetNamespaces(cluster string) ([]*Namespace, error)
 }
 
@@ -65,15 +65,17 @@ func (m *configmanager) GetNamespaces(cluster string) ([]*Namespace, error) {
 	return []*Namespace{}, nil
 }
 
-func (m *configmanager) GetResourceQuota(namespace string) (*v1.ResourceQuota, error) {
+func (m *configmanager) GetResourceQuota(cluster string, namespace string) (*v1.ResourceQuota, error) {
 	err := m.lazyLoadConfig()
 	if err != nil {
 		return nil, err
 	}
 	for _, c := range m.config.Clusters {
-		for _, n := range c.Namespaces {
-			if namespace == n.Name {
-				return n.ResourceQuota, nil
+		if cluster == c.Name {
+			for _, n := range c.Namespaces {
+				if namespace == n.Name {
+					return n.ResourceQuota, nil
+				}
 			}
 		}
 	}

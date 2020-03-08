@@ -44,18 +44,19 @@ type create struct {
 
 func (c *create) command() *cobra.Command {
 	return &cobra.Command{
-		Use:   "create-resourcequota <namespace>",
-		Short: "Create resourcequota for a given namespace",
+		Use:   "create-resourcequota <cluster> <namespace>",
+		Short: "Create resourcequota for a given cluster and namespace",
 		RunE:  c.runE,
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 	}
 }
 
 func (c *create) runE(cmd *cobra.Command, args []string) error {
 	client := c.c.Client
 	m := c.c.Manager
-	namespace := args[0]
-	rq, err := m.GetResourceQuota(namespace)
+	cluster := args[0]
+	namespace := args[1]
+	rq, err := m.GetResourceQuota(cluster, namespace)
 	if err != nil {
 		return err
 	}

@@ -20,22 +20,7 @@ import (
 
 func TestCreateResourceQuota_ErrorsWithoutArgs(t *testing.T) {
 	output := &bytes.Buffer{}
-	conf := &cli.Config{
-		ConfigDir: "../config/testdata",
-		Manager: newManager(
-			[]*config.Cluster{
-				{
-					Name: "cluster-1",
-				},
-			},
-			[]*config.Namespace{
-				{
-					Name: "namespace-1",
-				},
-			},
-			&v1.ResourceQuota{},
-			fmt.Errorf("cluster doesn't exist")),
-	}
+	conf := cli.NewConfig("../config/testdata")
 	conf.Client = fakes.NewKubeClient()
 	root := kmgmt.CreateRootCommand(conf)
 	root.SetOutput(output)
@@ -47,8 +32,8 @@ func TestCreateResourceQuota_ErrorsWithoutArgs(t *testing.T) {
 	}
 
 	contents := output.String()
-	if !strings.Contains(contents, "Error: accepts 1 arg(s), received 0\n") {
-		t.Fatalf("expected error message: Error: accepts 1 arg(s), received 0; got %s", contents)
+	if !strings.Contains(contents, "Error: accepts 2 arg(s), received 0\n") {
+		t.Fatalf("expected error message: Error: accepts 2 arg(s), received 0; got %s", contents)
 	}
 }
 
@@ -88,7 +73,7 @@ func TestCreateResourceQuota(t *testing.T) {
 	root.SetOutput(output)
 	conf.Stdout = output
 	conf.Stderr = output
-	root.SetArgs([]string{"create-resourcequota", "namespace-1"})
+	root.SetArgs([]string{"create-resourcequota", "cluster-1", "namespace-1"})
 
 	err := root.Execute()
 	if err != nil {
@@ -121,7 +106,7 @@ func TestCreateResourceQuota_NamespacesNotFound(t *testing.T) {
 	root.SetOutput(output)
 	conf.Stdout = output
 	conf.Stderr = output
-	root.SetArgs([]string{"create-resourcequota", "namespace-noexiste"})
+	root.SetArgs([]string{"create-resourcequota", "cluster-1", "namespace-noexiste"})
 
 	err := root.Execute()
 	if err == nil {
@@ -174,7 +159,7 @@ func TestCreateResourceQuota_InvalidResourceQuotaConfig(t *testing.T) {
 	root.SetOutput(output)
 	conf.Stdout = output
 	conf.Stderr = output
-	root.SetArgs([]string{"create-resourcequota", "namespace-1"})
+	root.SetArgs([]string{"create-resourcequota", "cluster-1", "namespace-1"})
 
 	err := root.Execute()
 	if err == nil {
@@ -212,7 +197,7 @@ func (m *stubManager) GetNamespaces(cluster string) ([]*config.Namespace, error)
 	return m.namespaces, nil
 }
 
-func (m *stubManager) GetResourceQuota(namespace string) (*v1.ResourceQuota, error) {
+func (m *stubManager) GetResourceQuota(cluster string, namespace string) (*v1.ResourceQuota, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

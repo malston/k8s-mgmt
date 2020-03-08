@@ -78,7 +78,7 @@ func TestNamespaceIsOverriddenInYaml(t *testing.T) {
 	if err != nil {
 		t.Errorf("error parsing config %s", err)
 	}
-	if namespaces[0].Name != "overridden-namespace-1" {
+	if namespaces[0].Name != "my-namespace" {
 		t.Errorf("expected namespace-1, got %s namespaces", namespaces[0].Name)
 	}
 }
@@ -118,17 +118,13 @@ func TestClusterInFolderDoesNotExist(t *testing.T) {
 
 func TestResourceQuotaIsCreatedForAllNamespaces(t *testing.T) {
 	m, _ := config.NewManager("./testdata")
-	got, err := m.GetResourceQuota("namespace-1")
-	if err != nil {
-		t.Errorf("error creating resource quota %s", err)
-	}
 	want := &v1.ResourceQuota{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ResourceQuota",
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "default-mem-cpu-quota",
+			Name: "default-mem-cpu-quota-for-cluster-1",
 		},
 		Spec: v1.ResourceQuotaSpec{
 			Hard: v1.ResourceList{
@@ -138,6 +134,41 @@ func TestResourceQuotaIsCreatedForAllNamespaces(t *testing.T) {
 				v1.ResourceLimitsMemory:   resource.MustParse("2Gi"),
 			},
 		},
+	}
+	got, err := m.GetResourceQuota("cluster-1", "namespace-1")
+	if err != nil {
+		t.Errorf("error creating resource quota %s", err)
+	}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("GetResourceQuota() mismatch (-want +got):\n%s", diff)
+	}
+	got, err = m.GetResourceQuota("cluster-1", "namespace-2")
+	if err != nil {
+		t.Errorf("error creating resource quota %s", err)
+	}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("GetResourceQuota() mismatch (-want +got):\n%s", diff)
+	}
+	want = &v1.ResourceQuota{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ResourceQuota",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "default-mem-cpu-quota-for-cluster-2",
+		},
+		Spec: v1.ResourceQuotaSpec{
+			Hard: v1.ResourceList{
+				v1.ResourceRequestsCPU:    resource.MustParse("2"),
+				v1.ResourceRequestsMemory: resource.MustParse("2Gi"),
+				v1.ResourceLimitsCPU:      resource.MustParse("4"),
+				v1.ResourceLimitsMemory:   resource.MustParse("4Gi"),
+			},
+		},
+	}
+	got, err = m.GetResourceQuota("my-cluster", "my-namespace")
+	if err != nil {
+		t.Errorf("error creating resource quota %s", err)
 	}
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("GetResourceQuota() mismatch (-want +got):\n%s", diff)
