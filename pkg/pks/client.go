@@ -8,7 +8,7 @@ import (
 	"github.com/malston/k8s-mgmt/pkg/exec"
 )
 
-type Client interface {
+type PKSClient interface {
 	CreateCluster(cluster *config.Cluster) error
 	ShowCluster(name string) (*config.Cluster, error)
 }
@@ -37,7 +37,7 @@ func (c *pksClient) ShowCluster(name string) (*config.Cluster, error) {
 	return cluster, nil
 }
 
-func NewClient(clr exec.CommandLineRunner) Client {
+func NewPKSClient(clr exec.CommandLineRunner) PKSClient {
 	return &pksClient{clr}
 }
 

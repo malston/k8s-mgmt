@@ -110,7 +110,7 @@ func (c *create) runE(cmd *cobra.Command, args []string) error {
 
 func (c *create) createCluster(cluster *config.Cluster, wg *sync.WaitGroup, results chan<- *config.Cluster, errors chan<- error) {
 	defer wg.Done()
-	err := c.c.PKSClient.CreateCluster(cluster)
+	err := c.c.CreateCluster(cluster)
 	if err != nil {
 		errors <- fmt.Errorf("failed to create cluster %s, %v", cluster.Name, err)
 		return
@@ -121,7 +121,7 @@ func (c *create) createCluster(cluster *config.Cluster, wg *sync.WaitGroup, resu
 func (c *create) waitForClusterCompletion(name string, wg *sync.WaitGroup, results chan<- *config.Cluster) {
 	defer wg.Done()
 	for {
-		cluster, _ := c.c.PKSClient.ShowCluster(name)
+		cluster, _ := c.c.ShowCluster(name)
 		if len(cluster.IPAddress) > 0 {
 			results <- cluster
 			return

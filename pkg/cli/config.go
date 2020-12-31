@@ -21,7 +21,7 @@ type Config struct {
 	KubeConfigFile  string
 	ViperConfigFile string
 	k8s.Client
-	PKSClient pks.Client
+	pks.PKSClient
 	config.Manager
 	ConfigDir string
 	Name      string
@@ -119,7 +119,7 @@ func (c *Config) init() {
 	}
 	if c.PKSClient == nil {
 		clr := exec.NewCommandLineRunner(os.Stdout, os.Stderr)
-		c.PKSClient = pks.NewClient(clr)
+		c.PKSClient = pks.NewPKSClient(clr)
 	}
 	if c.Manager == nil {
 		var err error

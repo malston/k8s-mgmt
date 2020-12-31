@@ -12,8 +12,8 @@ import (
 
 func TestCreateCluster(t *testing.T) {
 	clr := &stubCommandLineRunner{}
-	client := pks.NewClient(clr)
-	err := client.CreateCluster(&config.Cluster{Name: "some-cluster", NetworkProfile: "some-nw-profile"})
+	pks := pks.NewPKSClient(clr)
+	err := pks.CreateCluster(&config.Cluster{Name: "some-cluster", NetworkProfile: "some-nw-profile"})
 	if err != nil {
 		t.Fatalf("error should not have occured %v", err)
 	}
@@ -24,8 +24,8 @@ func TestCreateCluster(t *testing.T) {
 
 func TestCreateCluster_InvalidCluster(t *testing.T) {
 	clr := &stubCommandLineRunner{err: errors.New("blah")}
-	client := pks.NewClient(clr)
-	err := client.CreateCluster(&config.Cluster{Name: "some-cluster"})
+	pks := pks.NewPKSClient(clr)
+	err := pks.CreateCluster(&config.Cluster{Name: "some-cluster"})
 	if err == nil {
 		t.Fatal("error should have occured")
 	}
@@ -39,8 +39,8 @@ func TestShowCluster(t *testing.T) {
 	resp := new(bytes.Buffer)
 	json.NewEncoder(resp).Encode(&config.Cluster{Name: "some-cluster"})
 	clr.output = resp.Bytes()
-	client := pks.NewClient(clr)
-	cluster, err := client.ShowCluster("some-cluster")
+	pks := pks.NewPKSClient(clr)
+	cluster, err := pks.ShowCluster("some-cluster")
 	if err != nil {
 		t.Fatalf("error should not have occured %v", err)
 	}
@@ -54,8 +54,8 @@ func TestShowCluster(t *testing.T) {
 
 func TestShowCluster_InvalidCluster(t *testing.T) {
 	clr := &stubCommandLineRunner{err: errors.New("blah")}
-	client := pks.NewClient(clr)
-	_, err := client.ShowCluster("some-cluster")
+	pks := pks.NewPKSClient(clr)
+	_, err := pks.ShowCluster("some-cluster")
 	if err == nil {
 		t.Fatal("error should have occured")
 	}
@@ -67,8 +67,8 @@ func TestShowCluster_InvalidCluster(t *testing.T) {
 func TestShowCluster_InvalidCommandOutput(t *testing.T) {
 	clr := &stubCommandLineRunner{}
 	clr.output = nil
-	client := pks.NewClient(clr)
-	_, err := client.ShowCluster("some-cluster")
+	pks := pks.NewPKSClient(clr)
+	_, err := pks.ShowCluster("some-cluster")
 	if err == nil {
 		t.Fatal("error should have occured")
 	}
