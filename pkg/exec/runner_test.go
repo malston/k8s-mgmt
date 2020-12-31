@@ -2,6 +2,7 @@ package exec_test
 
 import (
 	"bytes"
+	"context"
 	"strings"
 	"testing"
 	"time"
@@ -20,12 +21,6 @@ func TestCommandLineRunner(t *testing.T) {
 		{
 			name:           "pks",
 			args:           "--version",
-			timeout:        100 * time.Millisecond,
-			expectedOutput: "PKS CLI version",
-		},
-		{
-			name:           "pks",
-			args:           "--version",
 			expectedOutput: "",
 		},
 		{
@@ -37,7 +32,7 @@ func TestCommandLineRunner(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			var stdOut, stdErr bytes.Buffer
-			clr := exec.NewCommandLineRunner(&stdOut, &stdErr, exec.WithTimeout(test.timeout))
+			clr := exec.NewCommandLineRunner(&stdOut, &stdErr)
 			err := clr.Run(test.name, test.args)
 			if err != nil && !test.expectError {
 				t.Fatalf("error should not have occurred: %s", err.Error())
@@ -49,6 +44,7 @@ func TestCommandLineRunner(t *testing.T) {
 		})
 	}
 }
+
 func TestCommandLineRunnerWithOutput(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -60,7 +56,6 @@ func TestCommandLineRunnerWithOutput(t *testing.T) {
 		{
 			name:           "pks",
 			args:           "--version",
-			timeout:        100 * time.Millisecond,
 			expectedOutput: "PKS CLI version",
 		},
 		{
@@ -77,7 +72,7 @@ func TestCommandLineRunnerWithOutput(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			var stdOut, stdErr bytes.Buffer
-			clr := exec.NewCommandLineRunner(&stdOut, &stdErr, exec.WithTimeout(test.timeout))
+			clr := exec.NewCommandLineRunner(&stdOut, &stdErr)
 			output, err := clr.RunOutput(test.name, test.args)
 			if err != nil && !test.expectError {
 				t.Fatalf("error should not have occurred: %s", err.Error())
@@ -86,5 +81,20 @@ func TestCommandLineRunnerWithOutput(t *testing.T) {
 				t.Errorf("Unexpected output: %s", output)
 			}
 		})
+	}
+}
+
+func TestCommandLineRunnerWithTimeoutContext(t *testing.T) {
+	var stdOut, stdErr bytes.Buffer
+	ctx, cancel := context.WithTimeout(context.Background(), 0)
+	defer cancel()
+	clr := exec.NewCommandLineRunner(&stdOut, &stdErr, exec.WithContext(ctx))
+	err := clr.Run("pks", "--version")
+	if err == nil {
+		t.Fatalf("error should have occurred")
+	}
+	actualStdOut := stdOut.String()
+	if actualStdOut != "" {
+		t.Errorf("Unexpected output: %s", actualStdOut)
 	}
 }

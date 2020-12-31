@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os/exec"
-	"time"
 )
 
 type CommandLineRunner interface {
@@ -29,24 +28,22 @@ func NewCommandLineRunner(stdOut io.Writer, stdErr io.Writer, opts ...option) Co
 	return clr
 }
 
-func WithTimeout(duration time.Duration) option {
+func WithContext(ctx context.Context) option {
 	return func(r *clr) {
-		r.timeout = duration
+		r.ctx = ctx
 	}
 }
 
 type clr struct {
-	timeout time.Duration
-	Stdout  io.Writer
-	Stderr  io.Writer
+	ctx    context.Context
+	Stdout io.Writer
+	Stderr io.Writer
 }
 
 func (c *clr) Run(name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
-	if c.timeout != 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
-		defer cancel()
-		cmd = exec.CommandContext(ctx, name, arg...)
+	if c.ctx != nil {
+		cmd = exec.CommandContext(c.ctx, name, arg...)
 	}
 
 	stdout, _ := cmd.StdoutPipe()
@@ -68,10 +65,8 @@ func (c *clr) Run(name string, arg ...string) error {
 
 func (c *clr) RunOutput(name string, arg ...string) ([]byte, error) {
 	cmd := exec.Command(name, arg...)
-	if c.timeout != 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
-		defer cancel()
-		cmd = exec.CommandContext(ctx, name, arg...)
+	if c.ctx != nil {
+		cmd = exec.CommandContext(c.ctx, name, arg...)
 	}
 
 	return cmd.CombinedOutput()
