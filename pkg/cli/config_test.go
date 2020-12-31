@@ -42,6 +42,23 @@ func TestNewDefaultConfig(t *testing.T) {
 	}
 }
 
+func TestNewDefaultConfig_CompiledEnv(t *testing.T) {
+	conf, err := cli.NewDefaultConfig()
+	if err != nil {
+		t.Error("Expected error not to have occurred")
+	}
+	expected := conf.CompiledEnv
+	actual := cli.CompiledEnv{
+		Name:     "kmgmt",
+		Version:  "unknown",
+		GitSha:   "unknown sha",
+		GitDirty: false,
+	}
+	if diff := cmp.Diff(expected, actual); diff != "" {
+		t.Errorf("Unexpected env (-expected, +actual): %s", diff)
+	}
+}
+
 func TestDefaultConfig_HomeDir(t *testing.T) {
 	home, homeisset := os.LookupEnv("K8SMGMT_HOME")
 	defer func() {

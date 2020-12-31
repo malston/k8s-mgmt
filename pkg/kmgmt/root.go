@@ -22,6 +22,8 @@ THE SOFTWARE.
 package kmgmt
 
 import (
+	"fmt"
+
 	"github.com/malston/k8s-mgmt/pkg/cli"
 	"github.com/malston/k8s-mgmt/pkg/cluster"
 	"github.com/malston/k8s-mgmt/pkg/namespace"
@@ -37,6 +39,14 @@ func CreateRootCommand(config *cli.Config) *cobra.Command {
 		Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application.`,
 	}
+
+	// set version
+	if !config.GitDirty {
+		rootCmd.Version = fmt.Sprintf("%s (%s)", config.Version, config.GitSha)
+	} else {
+		rootCmd.Version = fmt.Sprintf("%s (%s, with local modifications)", config.Version, config.GitSha)
+	}
+	rootCmd.Flags().Bool("version", false, "display CLI version")
 
 	rootCmd.AddCommand(namespace.NewCommand(config))
 	rootCmd.AddCommand(cluster.NewCommand(config))

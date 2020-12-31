@@ -17,6 +17,7 @@ import (
 )
 
 type Config struct {
+	CompiledEnv
 	KubeConfigFile  string
 	ViperConfigFile string
 	k8s.Client
@@ -53,11 +54,12 @@ func NewDefaultConfig() (*Config, error) {
 
 func NewConfig(configDir string) *Config {
 	c := &Config{
-		ConfigDir: configDir,
-		Name:      "k8s-mgmt",
-		Stdin:     os.Stdin,
-		Stdout:    os.Stdout,
-		Stderr:    os.Stderr,
+		CompiledEnv: env,
+		ConfigDir:   configDir,
+		Name:        "k8s-mgmt",
+		Stdin:       os.Stdin,
+		Stdout:      os.Stdout,
+		Stderr:      os.Stderr,
 	}
 
 	cobra.OnInitialize(c.initViperConfig)
