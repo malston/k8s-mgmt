@@ -1,3 +1,7 @@
+# built artifacts
+/bin
+/dist
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -11,20 +15,14 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# built artifacts
-/kmgmt
-/kmgmt.zip
-/kmgmt-*.tgz
-/kmgmt-*.zip
-
 # coverage artifacts
 /coverage.txt
+
+# IntelliJ artifacts
+.idea
 
 # Visual Studio Code artifacts
 .vscode
 
 # OS turds
 .DS_Store
-
-/bin
-/vendor
